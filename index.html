@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Application Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            font-weight: 300;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+        
+        .search-bar {
+            margin: 1.5rem auto;
+            max-width: 600px;
+            display: flex;
+        }
+        
+        .search-bar input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px 0 0 30px;
+            font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .search-bar button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 0 30px 30px 0;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+        
+        .search-bar button:hover {
+            background-color: #3ab7db;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px;
+            padding: 10px;
+        }
+        
+        .app-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.12);
+        }
+        
+        .app-image {
+            height: 140px;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            cursor: pointer;
+        }
+        
+        .app-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .app-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        
+        .app-title:hover {
+            color: var(--primary-color);
+        }
+        
+        .app-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            flex: 1;
+        }
+        
+        .app-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 15px;
+        }
+        
+        .app-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            flex: 1;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f0f4ff;
+        }
+        
+        .btn-download {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background-color: #43a047;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .app-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animation for app cards */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .app-card {
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .app-card:nth-child(1) { animation-delay: 0.1s; }
+        .app-card:nth-child(2) { animation-delay: 0.2s; }
+        .app-card:nth-child(3) { animation-delay: 0.3s; }
+        .app-card:nth-child(4) { animation-delay: 0.4s; }
+        .app-card:nth-child(5) { animation-delay: 0.5s; }
+        .app-card:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Mes carnets de cartes</h1>
+            <p class="subtitle">Tous mes carnets au même endroit</p>
+        </div>
+    </header>
+    
+    <div class="container">
+                
+        <div class="app-grid" id="appGrid">
+            <!-- App 1 -->
+            <div class="app-card" data-category="cards">
+                <div class="app-image" onclick="window.location.href='concerts.html'">
+                    <img src="concerts.png" alt="Concerts">
+                </div>
+                <div class="app-info">
+                    <div class="app-actions">
+                        <button class="btn btn-primary" onclick="window.location.href='concerts.html'">Mes Concerts</button>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- App 2 -->
+                        
+            <!-- App 3 -->
+            
+	    <!-- App 4 -->
+            
+            
+               
+    <footer>
+        <div class="container">
+            <p>My Application Hub. All Apps dev by N.Page</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                const apps = document.querySelectorAll('.app-card');
+                
+                apps.forEach(app => {
+                    if (filter === 'all' || app.getAttribute('data-category') === filter) {
+                        app.style.display = 'flex';
+                    } else {
+                        app.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const apps = document.querySelectorAll('.app-card');
+            
+            apps.forEach(app => {
+                const title = app.querySelector('.app-title').textContent.toLowerCase();
+                const description = app.querySelector('.app-description').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    app.style.display = 'flex';
+                } else {
+                    app.style.display = 'none';
+                }
+            });
+        });
+                
+        // Animation trigger
+        document.addEventListener('DOMContentLoaded', function() {
+            // This forces the animations to play after page load
+            const apps = document.querySelectorAll('.app-card');
+            apps.forEach((app, index) => {
+                app.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
