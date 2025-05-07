@@ -99,48 +99,120 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Password Modal Styles */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .password-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .password-container h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .password-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .password-button:hover {
+            background-color: #2980b9;
+        }
+        .password-error {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        .content-container {
+            display: none; /* Hide content until password is verified */
+        }
     </style>
 </head>
 <body>
-    <h1>Nouvelle Carte d'Événement</h1>
-    
-    <div class="card-form">
-        <form id="eventCardForm">
-            <div class="form-group">
-                <label for="eventName">Nom de l'événement *</label>
-                <input type="text" id="eventName" name="eventName" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="location">Lieu *</label>
-                <input type="text" id="location" name="location" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="eventDate">Date *</label>
-                <input type="date" id="eventDate" name="eventDate" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="groups">Groupes écoutés</label>
-                <textarea id="groups" name="groups" placeholder="Séparez les noms des groupes par des virgules..."></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="people">Personnes présentes avec moi</label>
-                <textarea id="people" name="people" placeholder="Avec qui étiez-vous à cet événement?"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="notes">Détails / Remarques supplémentaires</label>
-                <textarea id="notes" name="notes" placeholder="Ajoutez ici tous les détails supplémentaires que vous souhaitez..."></textarea>
-            </div>
-            
-            <button type="submit">Enregistrer la carte</button>
-        </form>
+    <!-- Password Modal -->
+    <div id="passwordModal" class="password-modal">
+        <div class="password-container">
+            <h2>Accès Protégé</h2>
+            <p>Veuillez entrer le mot de passe pour accéder au formulaire.</p>
+            <input type="password" id="passwordInput" class="password-input" placeholder="Mot de passe">
+            <div id="passwordError" class="password-error">Mot de passe incorrect. Veuillez réessayer.</div>
+            <button id="submitPassword" class="password-button">Accéder</button>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until password verified) -->
+    <div id="contentContainer" class="content-container">
+        <h1>Nouvelle Carte d'Événement</h1>
         
-        <div id="loadingIndicator" class="loading">Enregistrement en cours...</div>
-        <div id="statusMessage" class="status-message"></div>
+        <div class="card-form">
+            <form id="eventCardForm">
+                <div class="form-group">
+                    <label for="eventName">Nom de l'événement *</label>
+                    <input type="text" id="eventName" name="eventName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Lieu *</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDate">Date *</label>
+                    <input type="date" id="eventDate" name="eventDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="groups">Groupes écoutés</label>
+                    <textarea id="groups" name="groups" placeholder="Séparez les noms des groupes par des virgules..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="people">Personnes présentes avec moi</label>
+                    <textarea id="people" name="people" placeholder="Avec qui étiez-vous à cet événement?"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Détails / Remarques supplémentaires</label>
+                    <textarea id="notes" name="notes" placeholder="Ajoutez ici tous les détails supplémentaires que vous souhaitez..."></textarea>
+                </div>
+                
+                <button type="submit">Enregistrer la carte</button>
+            </form>
+            
+            <div id="loadingIndicator" class="loading">Enregistrement en cours...</div>
+            <div id="statusMessage" class="status-message"></div>
+        </div>
     </div>
 
     <!-- Firebase App (the core Firebase SDK) -->
@@ -149,6 +221,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
+        // Password protection script
+        document.addEventListener('DOMContentLoaded', function() {
+            const correctPassword = "np4"; // Change this to your desired password
+            const passwordModal = document.getElementById('passwordModal');
+            const contentContainer = document.getElementById('contentContainer');
+            const passwordInput = document.getElementById('passwordInput');
+            const submitPassword = document.getElementById('submitPassword');
+            const passwordError = document.getElementById('passwordError');
+            
+            // Check if password is already verified (for page refreshes)
+            if (sessionStorage.getItem('passwordVerified') === 'true') {
+                passwordModal.style.display = 'none';
+                contentContainer.style.display = 'block';
+            }
+            
+            // Handle password submission
+            submitPassword.addEventListener('click', checkPassword);
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+            
+            function checkPassword() {
+                if (passwordInput.value === correctPassword) {
+                    // Store password verification in session storage
+                    sessionStorage.setItem('passwordVerified', 'true');
+                    
+                    // Hide modal and show content
+                    passwordModal.style.display = 'none';
+                    contentContainer.style.display = 'block';
+                } else {
+                    // Show error message
+                    passwordError.style.display = 'block';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            }
+        });
+
         // Configuration Firebase
          const firebaseConfig = {
             apiKey: "AIzaSyC3zpS_NT8sHN4j0upcAd8jmpfhsgXtdRw",
