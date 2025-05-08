@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nouvelle Carte d'Événement</title>
+    <title>Gestion des Cartes d'Événements</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,16 +14,17 @@
             background-color: #f5f5f5;
             color: #333;
         }
-        h1 {
+        h1, h2 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .card-form {
             background: white;
             border-radius: 8px;
             padding: 25px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
         .form-group {
             margin-bottom: 20px;
@@ -46,7 +47,7 @@
             min-height: 100px;
             resize: vertical;
         }
-        button {
+        .btn {
             background-color: #3498db;
             color: white;
             border: none;
@@ -54,12 +55,32 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            display: block;
-            margin: 20px auto 0;
+            display: inline-block;
+            margin-right: 10px;
             transition: background-color 0.3s;
         }
-        button:hover {
+        .btn:hover {
             background-color: #2980b9;
+        }
+        .btn-primary {
+            background-color: #3498db;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .btn-warning {
+            background-color: #f39c12;
+        }
+        .btn-warning:hover {
+            background-color: #d35400;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
         }
         .date-group {
             display: flex;
@@ -157,6 +178,50 @@
         .content-container {
             display: none; /* Hide content until password is verified */
         }
+        .form-mode {
+            background-color: #eaf2f8;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .form-mode.edit-mode {
+            background-color: #fdebd0;
+        }
+        /* Styles pour la liste des concerts */
+        .concerts-list {
+            margin-top: 30px;
+        }
+        .concert-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .concert-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .concert-info {
+            margin-bottom: 5px;
+        }
+        .concert-info strong {
+            color: #34495e;
+        }
+        .concert-actions {
+            margin-top: 15px;
+            text-align: right;
+        }
+        .edit-mode-highlight {
+            border: 2px solid #f39c12;
+            background-color: #fef9e7;
+        }
     </style>
 </head>
 <body>
@@ -173,10 +238,15 @@
 
     <!-- Main Content (Hidden until password verified) -->
     <div id="contentContainer" class="content-container">
-        <h1>Nouvelle Carte d'Événement</h1>
+        <h1>Gestion des Cartes d'Événements</h1>
         
         <div class="card-form">
+            <div id="formMode" class="form-mode">Mode: Ajout d'un nouvel événement</div>
+            
             <form id="eventCardForm">
+                <input type="hidden" id="docId" name="docId">
+                <input type="hidden" id="originalEventName" name="originalEventName">
+                
                 <div class="form-group">
                     <label for="eventName">Nom de l'événement *</label>
                     <input type="text" id="eventName" name="eventName" required>
@@ -207,11 +277,21 @@
                     <textarea id="notes" name="notes" placeholder="Ajoutez ici tous les détails supplémentaires que vous souhaitez..."></textarea>
                 </div>
                 
-                <button type="submit">Enregistrer la carte</button>
+                <div class="btn-container">
+                    <div>
+                        <button type="submit" id="submitBtn" class="btn btn-primary">Enregistrer</button>
+                        <button type="button" id="cancelBtn" class="btn" style="display: none;">Annuler</button>
+                    </div>
+                </div>
             </form>
             
-            <div id="loadingIndicator" class="loading">Enregistrement en cours...</div>
+            <div id="loadingIndicator" class="loading">Traitement en cours...</div>
             <div id="statusMessage" class="status-message"></div>
+        </div>
+        
+        <h2>Événements enregistrés</h2>
+        <div id="concertsList" class="concerts-list">
+            <p>Chargement des événements...</p>
         </div>
     </div>
 
@@ -223,7 +303,7 @@
     <script>
         // Password protection script
         document.addEventListener('DOMContentLoaded', function() {
-            const correctPassword = "np4"; // Change this to your desired password
+            const correctPassword = "np4"; // Le même mot de passe que dans votre formulaire original
             const passwordModal = document.getElementById('passwordModal');
             const contentContainer = document.getElementById('contentContainer');
             const passwordInput = document.getElementById('passwordInput');
@@ -252,6 +332,9 @@
                     // Hide modal and show content
                     passwordModal.style.display = 'none';
                     contentContainer.style.display = 'block';
+                    
+                    // Chargement initial des concerts
+                    loadConcerts();
                 } else {
                     // Show error message
                     passwordError.style.display = 'block';
@@ -261,8 +344,8 @@
             }
         });
 
-        // Configuration Firebase
-         const firebaseConfig = {
+        // Configuration Firebase (votre configuration existante)
+        const firebaseConfig = {
             apiKey: "AIzaSyC3zpS_NT8sHN4j0upcAd8jmpfhsgXtdRw",
             authDomain: "paris-entre-amis-598e9.firebaseapp.com",
             projectId: "paris-entre-amis-598e9",
@@ -270,7 +353,6 @@
             messagingSenderId: "638642602040",
             appId: "1:638642602040:web:0f7557f7d4923b6aec26cd"
         };
-
 
         // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
@@ -285,8 +367,17 @@
         
         // Éléments du DOM
         const form = document.getElementById('eventCardForm');
+        const formMode = document.getElementById('formMode');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const statusMessage = document.getElementById('statusMessage');
+        const concertsList = document.getElementById('concertsList');
+        const docIdInput = document.getElementById('docId');
+        const originalEventNameInput = document.getElementById('originalEventName');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        
+        // État du formulaire
+        let isEditMode = false;
         
         // Fonction pour afficher un message de statut
         function showStatus(message, isSuccess) {
@@ -299,6 +390,175 @@
                 statusMessage.style.display = 'none';
             }, 5000);
         }
+        
+        // Fonction pour charger la liste des concerts
+        function loadConcerts() {
+            concertsList.innerHTML = "<p>Chargement des événements...</p>";
+            
+            concertsCollection.get()
+                .then(querySnapshot => {
+                    if (querySnapshot.empty) {
+                        concertsList.innerHTML = "<p>Aucun événement enregistré.</p>";
+                        return;
+                    }
+                    
+                    concertsList.innerHTML = '';
+                    
+                    // Convertir QuerySnapshot en tableau pour pouvoir trier les résultats
+                    const concerts = [];
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        concerts.push({
+                            id: doc.id,
+                            ...data
+                        });
+                    });
+                    
+                    // Trier les concerts par date (du plus récent au plus ancien)
+                    concerts.sort((a, b) => {
+                        // Si la date n'est pas définie, placer à la fin
+                        if (!a.eventDate) return 1;
+                        if (!b.eventDate) return -1;
+                        return new Date(b.eventDate) - new Date(a.eventDate);
+                    });
+                    
+                    // Afficher chaque concert
+                    concerts.forEach(concert => {
+                        const concertCard = document.createElement('div');
+                        concertCard.className = 'concert-card';
+                        concertCard.id = `concert-${concert.id}`;
+                        
+                        // Formatage de la date
+                        let formattedDate = "Date non spécifiée";
+                        if (concert.eventDate) {
+                            const date = new Date(concert.eventDate);
+                            formattedDate = date.toLocaleDateString('fr-FR', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                        }
+                        
+                        concertCard.innerHTML = `
+                            <h3>${concert.eventName || 'Sans titre'}</h3>
+                            <div class="concert-info"><strong>Lieu:</strong> ${concert.location || 'Non spécifié'}</div>
+                            <div class="concert-info"><strong>Date:</strong> ${formattedDate}</div>
+                            ${concert.groups ? `<div class="concert-info"><strong>Groupes:</strong> ${concert.groups}</div>` : ''}
+                            ${concert.people ? `<div class="concert-info"><strong>Avec:</strong> ${concert.people}</div>` : ''}
+                            ${concert.notes ? `<div class="concert-info"><strong>Notes:</strong> ${concert.notes}</div>` : ''}
+                            <div class="concert-actions">
+                                <button class="btn btn-warning" onclick="editConcert('${concert.id}')">Modifier</button>
+                                <button class="btn btn-danger" onclick="deleteConcert('${concert.id}', '${concert.eventName?.replace(/'/g, "\\'")}')">Supprimer</button>
+                            </div>
+                        `;
+                        
+                        concertsList.appendChild(concertCard);
+                    });
+                })
+                .catch(error => {
+                    console.error("Erreur lors du chargement des concerts:", error);
+                    concertsList.innerHTML = "<p>Erreur lors du chargement des événements.</p>";
+                });
+        }
+        
+        // Fonction pour modifier un concert existant
+        window.editConcert = function(docId) {
+            isEditMode = true;
+            
+            // Mettre à jour l'interface utilisateur
+            formMode.textContent = "Mode: Modification d'un événement existant";
+            formMode.classList.add('edit-mode');
+            submitBtn.textContent = "Mettre à jour";
+            cancelBtn.style.display = "inline-block";
+            
+            // Récupérer les données du concert
+            concertsCollection.doc(docId).get()
+                .then(doc => {
+                    if (!doc.exists) {
+                        showStatus("Concert introuvable!", false);
+                        return;
+                    }
+                    
+                    const data = doc.data();
+                    
+                    // Stocker l'ID du document et le nom original de l'événement
+                    docIdInput.value = docId;
+                    originalEventNameInput.value = data.eventName || '';
+                    
+                    // Remplir le formulaire avec les données
+                    document.getElementById('eventName').value = data.eventName || '';
+                    document.getElementById('location').value = data.location || '';
+                    document.getElementById('eventDate').value = data.eventDate || '';
+                    document.getElementById('groups').value = data.groups || '';
+                    document.getElementById('people').value = data.people || '';
+                    document.getElementById('notes').value = data.notes || '';
+                    
+                    // Faire défiler vers le formulaire
+                    form.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Mettre en évidence le concert en cours d'édition
+                    const allConcertCards = document.querySelectorAll('.concert-card');
+                    allConcertCards.forEach(card => card.classList.remove('edit-mode-highlight'));
+                    
+                    const currentCard = document.getElementById(`concert-${docId}`);
+                    if (currentCard) {
+                        currentCard.classList.add('edit-mode-highlight');
+                    }
+                })
+                .catch(error => {
+                    console.error("Erreur lors de la récupération du concert:", error);
+                    showStatus("Erreur lors du chargement des détails du concert.", false);
+                });
+        };
+        
+        // Fonction pour supprimer un concert
+        window.deleteConcert = function(docId, eventName) {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer l'événement "${eventName}" ?`)) {
+                loadingIndicator.style.display = 'block';
+                
+                concertsCollection.doc(docId).delete()
+                    .then(() => {
+                        loadingIndicator.style.display = 'none';
+                        showStatus("Événement supprimé avec succès!", true);
+                        
+                        // Si on supprime l'événement en cours d'édition, réinitialiser le formulaire
+                        if (docIdInput.value === docId) {
+                            resetForm();
+                        }
+                        
+                        // Recharger la liste des concerts
+                        loadConcerts();
+                    })
+                    .catch(error => {
+                        loadingIndicator.style.display = 'none';
+                        showStatus("Erreur lors de la suppression: " + error.message, false);
+                        console.error("Erreur lors de la suppression:", error);
+                    });
+            }
+        };
+        
+        // Fonction pour réinitialiser le formulaire
+        function resetForm() {
+            form.reset();
+            docIdInput.value = '';
+            originalEventNameInput.value = '';
+            
+            // Rétablir l'interface pour le mode ajout
+            formMode.textContent = "Mode: Ajout d'un nouvel événement";
+            formMode.classList.remove('edit-mode');
+            submitBtn.textContent = "Enregistrer";
+            cancelBtn.style.display = "none";
+            
+            // Réinitialiser l'état du formulaire
+            isEditMode = false;
+            
+            // Supprimer la mise en évidence de tous les concerts
+            const allConcertCards = document.querySelectorAll('.concert-card');
+            allConcertCards.forEach(card => card.classList.remove('edit-mode-highlight'));
+        }
+        
+        // Gestionnaire d'événement pour le bouton Annuler
+        cancelBtn.addEventListener('click', resetForm);
         
         // Gestionnaire d'événement pour la soumission du formulaire
         form.addEventListener('submit', async function(e) {
@@ -318,44 +578,82 @@
             };
             
             try {
-                // Utiliser le nom de l'événement comme ID du document
-                const eventId = eventData.eventName.trim().replace(/\s+/g, '_').toLowerCase();
-                
-                // Vérifier si un document avec cet ID existe déjà
-                const docRef = concertsCollection.doc(eventId);
-                const docSnapshot = await docRef.get();
-                
-                if (docSnapshot.exists) {
-                    // Document existe déjà, demander confirmation avant écrasement
-                    if (confirm(`Un événement avec le titre "${eventData.eventName}" existe déjà. Voulez-vous le remplacer?`)) {
-                        await docRef.set(eventData);
+                if (isEditMode) {
+                    // Mode édition
+                    const docId = docIdInput.value;
+                    const originalEventName = originalEventNameInput.value;
+                    
+                    // Vérifier si le nom de l'événement a été modifié
+                    if (eventData.eventName !== originalEventName) {
+                        // Le nom a changé, créer un nouvel ID
+                        const newEventId = eventData.eventName.trim().replace(/\s+/g, '_').toLowerCase();
+                        
+                        // Vérifier si un document avec ce nouvel ID existe déjà
+                        const newDocRef = concertsCollection.doc(newEventId);
+                        const docSnapshot = await newDocRef.get();
+                        
+                        if (docSnapshot.exists) {
+                            if (!confirm(`Un événement avec le titre "${eventData.eventName}" existe déjà. Voulez-vous le remplacer?`)) {
+                                loadingIndicator.style.display = 'none';
+                                showStatus('Mise à jour annulée.', false);
+                                return;
+                            }
+                        }
+                        
+                        // Créer le nouveau document
+                        await newDocRef.set(eventData);
+                        
+                        // Supprimer l'ancien document
+                        await concertsCollection.doc(docId).delete();
+                        
+                        showStatus('Événement mis à jour et renommé avec succès!', true);
                     } else {
-                        loadingIndicator.style.display = 'none';
-                        showStatus('Enregistrement annulé.', false);
-                        return;
+                        // Le nom n'a pas changé, mettre à jour le document existant
+                        await concertsCollection.doc(docId).update(eventData);
+                        showStatus('Événement mis à jour avec succès!', true);
                     }
                 } else {
-                    // Nouveau document, enregistrer normalement
+                    // Mode ajout
+                    const eventId = eventData.eventName.trim().replace(/\s+/g, '_').toLowerCase();
+                    
+                    // Vérifier si un document avec cet ID existe déjà
+                    const docRef = concertsCollection.doc(eventId);
+                    const docSnapshot = await docRef.get();
+                    
+                    if (docSnapshot.exists) {
+                        if (!confirm(`Un événement avec le titre "${eventData.eventName}" existe déjà. Voulez-vous le remplacer?`)) {
+                            loadingIndicator.style.display = 'none';
+                            showStatus('Enregistrement annulé.', false);
+                            return;
+                        }
+                    }
+                    
+                    // Créer ou mettre à jour le document
                     await docRef.set(eventData);
+                    showStatus('Événement enregistré avec succès!', true);
                 }
                 
-                // Cacher l'indicateur de chargement
-                loadingIndicator.style.display = 'none';
-                
-                // Afficher un message de succès
-                showStatus('Carte de concert enregistrée avec succès!', true);
-                
                 // Réinitialiser le formulaire
-                form.reset();
+                resetForm();
+                
+                // Recharger la liste des concerts
+                loadConcerts();
             } catch (error) {
+                showStatus('Erreur: ' + error.message, false);
+                console.error('Erreur:', error);
+            } finally {
                 // Cacher l'indicateur de chargement
                 loadingIndicator.style.display = 'none';
-                
-                // Afficher un message d'erreur
-                showStatus('Erreur lors de l\'enregistrement: ' + error.message, false);
-                console.error('Erreur lors de l\'enregistrement:', error);
             }
         });
+        
+        // Si le mot de passe est déjà validé, charger les concerts
+        if (sessionStorage.getItem('passwordVerified') === 'true') {
+            // Attendre que le DOM soit complètement chargé
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(loadConcerts, 500);
+            });
+        }
     </script>
 </body>
 </html>
