@@ -1,518 +1,1174 @@
 <!DOCTYPE html>
+
 <html lang="fr">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Mes Concerts - Agenda</title>
+
     <style>
+
         body {
+
             font-family: Arial, sans-serif;
+
             line-height: 1.6;
+
             max-width: 1200px;
+
             margin: 0 auto;
+
             padding: 20px;
+
             background-color: #f5f5f5;
+
             color: #333;
+
         }
+
         h1, h2 {
+
             color: #2c3e50;
+
             text-align: center;
+
         }
+
         .nav {
+
             display: flex;
+
             justify-content: center;
+
             margin: 20px 0;
+
             gap: 15px;
+
         }
+
         .nav a, .add-event-btn {
+
             padding: 10px 15px;
+
             background-color: #3498db;
+
             color: white;
+
             text-decoration: none;
+
             border-radius: 4px;
+
             transition: background-color 0.3s;
+
         }
+
         .nav a:hover, .add-event-btn:hover {
+
             background-color: #2980b9;
+
         }
+
         .view-container {
+
             background: white;
+
             border-radius: 8px;
+
             padding: 25px;
+
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
             margin-bottom: 30px;
+
         }
+
         .event-card {
+
             border-left: 4px solid #3498db;
+
             padding: 15px;
+
             margin-bottom: 15px;
+
             background-color: #f9f9f9;
+
         }
+
         .event-card h3 {
+
             margin-top: 0;
+
             color: #2c3e50;
+
         }
+
         .event-meta {
+
             display: flex;
+
             gap: 20px;
+
             margin-bottom: 10px;
+
             color: #7f8c8d;
+
             font-size: 0.9em;
+
         }
+
         .group-list {
+
             columns: 3;
+
             column-gap: 20px;
+
         }
+
         .group-item {
+
             margin-bottom: 8px;
+
             break-inside: avoid;
+
             cursor: pointer;
+
             padding: 5px;
+
             border-radius: 3px;
+
         }
+
         .group-item:hover {
+
             background-color: #e3f2fd;
+
         }
+
         .year-section {
+
             margin-bottom: 30px;
+
         }
+
         .year-title {
+
             border-bottom: 2px solid #3498db;
+
             padding-bottom: 5px;
+
             color: #2c3e50;
+
         }
+
         .year-groups {
+
             display: flex;
+
             flex-wrap: wrap;
+
             gap: 10px;
+
         }
+
         .year-group {
+
             background-color: #e3f2fd;
+
             padding: 8px 12px;
+
             border-radius: 15px;
+
             cursor: pointer;
+
         }
+
         .year-group:hover {
+
             background-color: #bbdefb;
+
         }
+
         .loading {
+
             text-align: center;
+
             margin: 30px 0;
+
         }
+
         .loading::after {
+
             content: "⏳";
+
             animation: loading 1.5s infinite;
+
             display: inline-block;
+
         }
+
         .active-view {
+
             background-color: #2980b9 !important;
+
         }
+
         .group-details {
+
             display: none;
+
             margin-top: 20px;
+
             padding: 15px;
+
             background-color: #f5f5f5;
+
             border-radius: 5px;
+
         }
+
         .back-button {
+
             display: inline-block;
+
             margin-bottom: 15px;
+
             color: #3498db;
+
             cursor: pointer;
+
             text-decoration: underline;
+
         }
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 300px;
+    max-width: 100%;
+    font-size: 1em;
+}
+
+.search-button {
+    padding: 10px 15px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-button:hover {
+    background-color: #2980b9;
+}
+
+@media (max-width: 480px) {
+    .search-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    .search-button {
+        width: 100%;
+    }
+}
+
         @keyframes loading {
+
             0% { transform: rotate(0deg); }
+
             100% { transform: rotate(360deg); }
+
         }
+
         @media (max-width: 768px) {
+
             .group-list {
+
                 columns: 2;
+
             }
+
             .nav {
+
                 flex-wrap: wrap;
+
             }
+
         }
+
         @media (max-width: 480px) {
+
             .group-list {
+
                 columns: 1;
+
             }
+
         }
+
     </style>
+
 </head>
+
 <body>
+
     <h1>Mes Concerts</h1>
-    
+
+    <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Rechercher un concert, groupe, lieu..." class="search-input">
+    <button id="searchButton" class="search-button">Rechercher</button>
+</div>
+
     <div class="nav">
+
         <a href="#" id="agendaView" class="active-view">Agenda</a>
+
         <a href="#" id="groupsView">Groupes</a>
+
         <a href="#" id="yearsView">Par Année</a>
+
         <a href="concert_form.html" class="add-event-btn">Ajouter un événement</a>
+
     </div>
+
     
+
     <div id="agendaContainer" class="view-container">
+
         <h2>Agenda des Concerts</h2>
+
         <div id="agendaContent"></div>
+
     </div>
+
     
+
     <div id="groupsContainer" class="view-container" style="display:none;">
+
         <h2>Groupes Écoutés</h2>
+
         <div id="groupsContent"></div>
+
         <div id="groupDetails" class="group-details"></div>
+
     </div>
+
     
+
     <div id="yearsContainer" class="view-container" style="display:none;">
+
         <h2>Concerts par Année</h2>
+
         <div id="yearsContent"></div>
+
         <div id="yearGroupDetails" class="group-details"></div>
+
     </div>
+
     
+
     <div id="loadingIndicator" class="loading">Chargement des données...</div>
 
+
+
     <!-- Firebase App (the core Firebase SDK) -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.js"></script>
+
     <!-- Firebase Firestore -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.js"></script>
 
+
+
     <script>
+
         // Configuration Firebase
+
         const firebaseConfig = {
+
             apiKey: "AIzaSyC3zpS_NT8sHN4j0upcAd8jmpfhsgXtdRw",
+
             authDomain: "paris-entre-amis-598e9.firebaseapp.com",
+
             projectId: "paris-entre-amis-598e9",
+
             storageBucket: "paris-entre-amis-598e9.firebasestorage.app",
+
             messagingSenderId: "638642602040",
+
             appId: "1:638642602040:web:0f7557f7d4923b6aec26cd"
+
         };
 
+
+
         // Initialiser Firebase
+
         firebase.initializeApp(firebaseConfig);
+
         
+
         // Référence à Firestore
+
         const db = firebase.firestore();
+
         const concertsCollection = db.collection("privateCards/Concert/Concerts");
+
         
+
         // Variables globales
+
         let allEvents = [];
+
         let allGroups = {};
+
         
+
         // Éléments du DOM
+
         const loadingIndicator = document.getElementById('loadingIndicator');
+
         const agendaContent = document.getElementById('agendaContent');
+
         const groupsContent = document.getElementById('groupsContent');
+
         const yearsContent = document.getElementById('yearsContent');
+
         const groupDetails = document.getElementById('groupDetails');
+
         const yearGroupDetails = document.getElementById('yearGroupDetails');
+
         const agendaView = document.getElementById('agendaView');
+
         const groupsView = document.getElementById('groupsView');
+
         const yearsView = document.getElementById('yearsView');
+
         const agendaContainer = document.getElementById('agendaContainer');
+
         const groupsContainer = document.getElementById('groupsContainer');
+
         const yearsContainer = document.getElementById('yearsContainer');
+
         
+	// Ajout des éléments de recherche
+const searchInput = document.getElementById('searchInput');
+const searchButton = document.getElementById('searchButton');
+
         // Charger les données au démarrage
+
         document.addEventListener('DOMContentLoaded', loadEvents);
+
         
+
         // Gestionnaires pour changer de vue
+
         agendaView.addEventListener('click', (e) => {
+
             e.preventDefault();
+
             setActiveView('agenda');
+
         });
+
         
+
         groupsView.addEventListener('click', (e) => {
+
             e.preventDefault();
+
             setActiveView('groups');
+
             hideGroupDetails();
+
         });
+
         
+
         yearsView.addEventListener('click', (e) => {
+
             e.preventDefault();
+
             setActiveView('years');
+
             hideYearGroupDetails();
+
         });
+
         
+
         function setActiveView(view) {
+
             // Mettre à jour les boutons actifs
+
             agendaView.classList.remove('active-view');
+
             groupsView.classList.remove('active-view');
+
             yearsView.classList.remove('active-view');
+
             
+
             // Masquer tous les conteneurs
+
             agendaContainer.style.display = 'none';
+
             groupsContainer.style.display = 'none';
+
             yearsContainer.style.display = 'none';
+
             
+
             // Afficher le conteneur sélectionné
+
             if (view === 'agenda') {
+
                 agendaView.classList.add('active-view');
+
                 agendaContainer.style.display = 'block';
+
             } else if (view === 'groups') {
+
                 groupsView.classList.add('active-view');
+
                 groupsContainer.style.display = 'block';
+
             } else if (view === 'years') {
+
                 yearsView.classList.add('active-view');
+
                 yearsContainer.style.display = 'block';
+
             }
+
         }
+
+// Fonction de recherche
+function searchEvents(keyword) {
+    if (!keyword.trim()) {
+        // Si la recherche est vide, afficher tous les événements
+        displayAgendaView();
+        return;
+    }
+
+    const lowerKeyword = keyword.toLowerCase();
+    const filteredEvents = allEvents.filter(event => {
+        // Vérifier dans tous les champs textuels de l'événement
+        return (
+            (event.eventName && event.eventName.toLowerCase().includes(lowerKeyword)) ||
+            (event.location && event.location.toLowerCase().includes(lowerKeyword)) ||
+            (event.groups && event.groups.toLowerCase().includes(lowerKeyword)) ||
+            (event.people && event.people.toLowerCase().includes(lowerKeyword)) ||
+            (event.notes && event.notes.toLowerCase().includes(lowerKeyword))
+        );
+    });
+
+    // Afficher les résultats
+    displaySearchResults(filteredEvents, keyword);
+}
+
+function displaySearchResults(events, keyword) {
+    if (events.length === 0) {
+        agendaContent.innerHTML = `<p>Aucun résultat trouvé pour "${keyword}".</p>`;
+        return;
+    }
+
+    let html = `<h3>Résultats pour "${keyword}" (${events.length} événement${events.length > 1 ? 's' : ''})</h3>`;
+    
+    events.forEach(event => {
+        const date = new Date(event.eventDate);
+        const formattedDate = date.toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        html += `
+            <div class="event-card">
+                <h3>${highlightKeyword(event.eventName, keyword)}</h3>
+                <div class="event-meta">
+                    <span><strong>Date:</strong> ${formattedDate}</span>
+                    <span><strong>Lieu:</strong> ${highlightKeyword(event.location, keyword)}</span>
+                </div>
+                ${event.groups ? `<p><strong>Groupes:</strong> ${highlightKeyword(event.groups, keyword)}</p>` : ''}
+                ${event.people ? `<p><strong>Avec:</strong> ${highlightKeyword(event.people, keyword)}</p>` : ''}
+                ${event.notes ? `<p><strong>Notes:</strong> ${highlightKeyword(event.notes, keyword)}</p>` : ''}
+            </div>
+        `;
+    });
+
+    agendaContent.innerHTML = html;
+}
+
+// Fonction pour mettre en surbrillance le mot-clé
+function highlightKeyword(text, keyword) {
+    if (!text || !keyword) return text;
+    const lowerText = text.toLowerCase();
+    const lowerKeyword = keyword.toLowerCase();
+    const startIndex = lowerText.indexOf(lowerKeyword);
+    
+    if (startIndex === -1) return text;
+    
+    const endIndex = startIndex + keyword.length;
+    return (
+        text.substring(0, startIndex) +
+        '<span style="background-color: yellow;">' +
+        text.substring(startIndex, endIndex) +
+        '</span>' +
+        text.substring(endIndex)
+    );
+}
+
         
+
         async function loadEvents() {
+
             try {
+
                 loadingIndicator.style.display = 'block';
+
                 
+
                 // Récupérer tous les concerts
+
                 const querySnapshot = await concertsCollection.get();
+
                 allEvents = [];
+
                 allGroups = {};
+
                 
+
                 querySnapshot.forEach((doc) => {
+
                     const event = { id: doc.id, ...doc.data() };
+
                     allEvents.push(event);
+
                     
+
                     // Préparer la liste des groupes
+
                     if (event.groups) {
+
                         const groups = event.groups.split(',').map(g => g.trim());
+
                         groups.forEach(group => {
+
                             if (group) {
+
                                 if (!allGroups[group]) {
+
                                     allGroups[group] = [];
+
                                 }
+
                                 allGroups[group].push(event);
+
                             }
+
                         });
+
                     }
+
                 });
+
                 
+
                 // Trier par date (du plus récent au plus ancien)
+
                 allEvents.sort((a, b) => new Date(b.eventDate) - new Date(a.eventDate));
+
                 
+
                 // Afficher les vues
+
                 displayAgendaView();
+
                 displayGroupsView();
+
                 displayYearsView();
+
                 
+
                 loadingIndicator.style.display = 'none';
+
             } catch (error) {
+
                 console.error("Erreur lors du chargement des concerts:", error);
+
                 loadingIndicator.innerHTML = '<div class="error">Erreur lors du chargement des données</div>';
+
             }
+
         }
+
         
+
         function displayAgendaView() {
+
             if (allEvents.length === 0) {
+
                 agendaContent.innerHTML = '<p>Aucun concert enregistré pour le moment.</p>';
+
                 return;
+
             }
+
             
+
             let html = '';
+
             allEvents.forEach(event => {
+
                 const date = new Date(event.eventDate);
+
                 const formattedDate = date.toLocaleDateString('fr-FR', {
+
                     weekday: 'long',
+
                     year: 'numeric',
+
                     month: 'long',
+
                     day: 'numeric'
+
                 });
+
                 
+
                 html += `
+
                     <div class="event-card">
+
                         <h3>${event.eventName}</h3>
+
                         <div class="event-meta">
+
                             <span><strong>Date:</strong> ${formattedDate}</span>
+
                             <span><strong>Lieu:</strong> ${event.location}</span>
+
                         </div>
+
                         ${event.groups ? `<p><strong>Groupes:</strong> ${event.groups}</p>` : ''}
+
                         ${event.people ? `<p><strong>Avec:</strong> ${event.people}</p>` : ''}
+
                         ${event.notes ? `<p><strong>Notes:</strong> ${event.notes}</p>` : ''}
+
                     </div>
+
                 `;
+
             });
+
             
+
             agendaContent.innerHTML = html;
+
         }
+
         
+
         function displayGroupsView() {
+
             if (Object.keys(allGroups).length === 0) {
+
                 groupsContent.innerHTML = '<p>Aucun groupe enregistré pour le moment.</p>';
+
                 return;
+
             }
+
             
+
             // Trier les groupes par ordre alphabétique
+
             const sortedGroups = Object.keys(allGroups).sort((a, b) => a.localeCompare(b, 'fr'));
+
             
+
             let html = '<div class="group-list">';
+
             sortedGroups.forEach(group => {
+
                 const eventCount = allGroups[group].length;
+
                 html += `
+
                     <div class="group-item" data-group="${group}">
+
                         <strong>${group}</strong> (${eventCount} concert${eventCount > 1 ? 's' : ''})
+
                     </div>
+
                 `;
+
             });
+
             html += '</div>';
+
             
+
             groupsContent.innerHTML = html;
+
             
+
             // Ajouter les écouteurs d'événements
+
             document.querySelectorAll('.group-item').forEach(item => {
+
                 item.addEventListener('click', function() {
+
                     const groupName = this.getAttribute('data-group');
+
                     showGroupDetails(groupName);
+
                 });
+
             });
+
         }
+
         
+
         function showGroupDetails(groupName) {
+
             const events = allGroups[groupName];
+
             
+
             let html = `
+
                 <div class="back-button" onclick="hideGroupDetails()">← Retour à la liste</div>
+
                 <h3>${groupName}</h3>
+
                 <p>Vu ${events.length} fois</p>
+
             `;
+
             
+
             events.forEach(event => {
+
                 const date = new Date(event.eventDate);
+
                 const formattedDate = date.toLocaleDateString('fr-FR', {
+
                     weekday: 'long',
+
                     year: 'numeric',
+
                     month: 'long',
+
                     day: 'numeric'
+
                 });
+
                 
+
                 html += `
+
                     <div class="event-card">
+
                         <h4>${event.eventName}</h4>
+
                         <div class="event-meta">
+
                             <span>${formattedDate}</span>
+
                             <span>${event.location}</span>
+
                         </div>
+
                         ${event.people ? `<p><strong>Avec:</strong> ${event.people}</p>` : ''}
+
                         ${event.notes ? `<p><strong>Notes:</strong> ${event.notes}</p>` : ''}
+
                     </div>
+
                 `;
+
             });
+
             
+
             groupDetails.innerHTML = html;
+
             groupDetails.style.display = 'block';
+
             groupsContent.style.display = 'none';
+
         }
+
         
+
         function hideGroupDetails() {
+
             groupDetails.style.display = 'none';
+
             groupsContent.style.display = 'block';
+
         }
+
         
+
         function displayYearsView() {
+
             // Grouper les groupes par année
+
             const groupsByYear = {};
+
             
+
             // Créer une structure { année: { groupes: [liste], events: [liste] } }
+
             allEvents.forEach(event => {
+
                 const year = new Date(event.eventDate).getFullYear();
+
                 if (!groupsByYear[year]) {
+
                     groupsByYear[year] = { groups: new Set(), events: [] };
+
                 }
+
                 groupsByYear[year].events.push(event);
+
                 
+
                 if (event.groups) {
+
                     const groups = event.groups.split(',').map(g => g.trim());
+
                     groups.forEach(group => {
+
                         if (group) {
+
                             groupsByYear[year].groups.add(group);
+
                         }
+
                     });
+
                 }
+
             });
+
             
+
             if (Object.keys(groupsByYear).length === 0) {
+
                 yearsContent.innerHTML = '<p>Aucun concert enregistré pour le moment.</p>';
+
                 return;
+
             }
+
             
+
             // Trier les années par ordre décroissant
+
             const sortedYears = Object.keys(groupsByYear).sort((a, b) => b - a);
+
             
+
             let html = '';
+
             sortedYears.forEach(year => {
+
                 const groupsArray = Array.from(groupsByYear[year].groups).sort((a, b) => a.localeCompare(b, 'fr'));
+
                 
+
                 html += `
+
                     <div class="year-section">
+
                         <h3 class="year-title">${year}</h3>
+
                         <div class="year-groups">
+
                 `;
+
                 
+
                 groupsArray.forEach(group => {
+
                     html += `
+
                         <div class="year-group" data-year="${year}" data-group="${group}">${group}</div>
+
                     `;
+
                 });
+
                 
+
                 html += `
+
                         </div>
+
                     </div>
+
                 `;
+
             });
+
             
+
             yearsContent.innerHTML = html;
+
             
+
             // Ajouter les écouteurs d'événements
+
             document.querySelectorAll('.year-group').forEach(item => {
+
                 item.addEventListener('click', function() {
+
                     const year = this.getAttribute('data-year');
+
                     const group = this.getAttribute('data-group');
+
                     showYearGroupDetails(year, group);
+
                 });
+
             });
+
         }
+
         
+
         function showYearGroupDetails(year, group) {
+
             // Trouver tous les événements de cette année avec ce groupe
+
             const events = allEvents.filter(event => {
+
                 const eventYear = new Date(event.eventDate).getFullYear().toString();
+
                 return eventYear === year && event.groups && event.groups.includes(group);
+
             });
+
             
+
             let html = `
+
                 <div class="back-button" onclick="hideYearGroupDetails()">← Retour à la liste</div>
+
                 <h3>${group} en ${year}</h3>
+
                 <p>Vu ${events.length} fois cette année</p>
+
             `;
+
             
+
             events.forEach(event => {
+
                 const date = new Date(event.eventDate);
+
                 const formattedDate = date.toLocaleDateString('fr-FR', {
+
                     weekday: 'long',
+
                     month: 'long',
+
                     day: 'numeric'
+
                 });
+
                 
+
                 html += `
+
                     <div class="event-card">
+
                         <h4>${event.eventName}</h4>
+
                         <div class="event-meta">
+
                             <span>${formattedDate}</span>
+
                             <span>${event.location}</span>
+
                         </div>
+
                         ${event.people ? `<p><strong>Avec:</strong> ${event.people}</p>` : ''}
+
                         ${event.notes ? `<p><strong>Notes:</strong> ${event.notes}</p>` : ''}
+
                     </div>
+
                 `;
+
             });
+
             
+
             yearGroupDetails.innerHTML = html;
+
             yearGroupDetails.style.display = 'block';
+
             yearsContent.style.display = 'none';
+
         }
+
         
+
         function hideYearGroupDetails() {
+
             yearGroupDetails.style.display = 'none';
+
             yearsContent.style.display = 'block';
+
         }
+
         
+// Écouteurs pour la recherche
+searchButton.addEventListener('click', () => {
+    setActiveView('agenda');
+    searchEvents(searchInput.value);
+});
+
+searchInput.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+        setActiveView('agenda');
+        searchEvents(searchInput.value);
+    }
+});
+
         // Exposer les fonctions au scope global pour les boutons de retour
+
         window.hideGroupDetails = hideGroupDetails;
+
         window.hideYearGroupDetails = hideYearGroupDetails;
+
     </script>
+
 </body>
+
 </html>
