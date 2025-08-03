@@ -112,46 +112,57 @@
             color: var(--gray);
         }
         
-        .app-description {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            margin-bottom: 35px;
-            text-align: center;
-            border-left: 5px solid var(--secondary);
+        /* Onglets */
+        .tabs-container {
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 25px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
             position: relative;
-            overflow: hidden;
         }
-        
-        .app-description::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--info));
+
+        .tab:hover {
+            color: var(--primary);
         }
-        
-        .app-description h2 {
+
+        .tab.active {
             color: var(--primary-dark);
-            margin-bottom: 18px;
-            font-size: 1.8rem;
+            border-bottom-color: var(--primary);
         }
-        
-        .app-layout {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-            margin-bottom: 40px;
+
+        .tab-content {
+            display: none;
         }
-        
-        @media (max-width: 900px) {
-            .app-layout {
-                grid-template-columns: 1fr;
-            }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .form-section, .friends-section {
@@ -527,9 +538,35 @@
         
         <div id="search-results-info" class="search-results-info" style="display: none;"></div>
         
-        <div class="app-layout">
+        <!-- Onglets -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <div class="tab active" data-tab="friends-list">
+                    <i class="fas fa-users"></i> Liste des amis
+                </div>
+                <div class="tab" data-tab="friend-form">
+                    <i class="fas fa-user-plus"></i> Ajouter un ami
+                    <span class="tab-badge" id="edit-badge" style="display: none;">!</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenu des onglets -->
+        <div class="tab-content active" id="friends-list-tab">
+            <div class="friends-section">
+                <div class="friends-list" id="friends-list">
+                    <div class="empty-state">
+                        <i class="fas fa-user-friends"></i>
+                        <h3>Aucun ami enregistré</h3>
+                        <p>Commencez par ajouter un ami à votre carnet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="friend-form-tab">
             <div class="form-section">
-                <h3 class="section-title"><i class="fas fa-user-edit"></i> Ajouter un ami</h3>
+                <h3 class="section-title"><i class="fas fa-user-edit"></i> <span id="form-title">Ajouter un ami</span></h3>
                 
                 <div class="form-group">
                     <label for="friend-name"><i class="fas fa-user"></i> Nom de l'ami</label>
@@ -558,37 +595,24 @@
                     </div>
                     
                     <div class="entries-counter" id="entries-counter">1 entrée</div>
-                    
-                    <div class="action-button">
-                        <button class="btn btn-info" id="add-entry">
+                                   </div>
+                
+                <div class="action-button">
+					<button class="btn btn-info" id="add-entry">
                             <i class="fas fa-plus-circle"></i> Ajouter une entrée
-                        </button>
-                        <button class="btn btn-secondary" id="clear-entries">
-                            <i class="fas fa-broom"></i> Tout effacer
-                        </button>
-                    </div>
-                </div>
-                
-                <button class="btn btn-primary btn-block" id="save-friend">
-                    <i class="fas fa-save"></i> Enregistrer cet ami
-                </button>
-            </div>
-            
-            <div class="friends-section">
-                <h3 class="section-title"><i class="fas fa-users"></i> Nos Amis</h3>
-                
-                <div class="friends-list" id="friends-list">
-                    <div class="empty-state">
-                        <i class="fas fa-user-friends"></i>
-                        <h3>Aucun ami enregistré</h3>
-                        <p>Commencez par ajouter un ami à votre carnet</p>
-                    </div>
+                    </button>
+                    <button class="btn btn-primary" id="save-friend">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                    <button class="btn btn-secondary" id="cancel-edit" style="display: none;">
+                        <i class="fas fa-times"></i> Annuler
+                    </button>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p><i class="fas fa-heart"></i> Carnet Gourmand - Préférences Alimentaires | Gardez une trace des goûts de vos amis pour des repas réussis !</p>
+            <p><i class="fas fa-heart"></i> Carnet Gourmand - Gardez une trace des goûts de vos amis pour des repas réussis ! \N. Page</p>
         </footer>
     </div>
     
@@ -613,9 +637,13 @@
         // Variables pour la recherche
         let allFriends = [];
         let searchQuery = '';
+        let currentEditId = null;
         
         // Initialisation de l'application
         document.addEventListener('DOMContentLoaded', () => {
+            // Configurer les onglets
+            setupTabs();
+            
             // Charger les amis depuis Firestore
             loadFriends();
             
@@ -645,12 +673,32 @@
             // Sauvegarder un ami
             document.getElementById('save-friend').addEventListener('click', saveFriend);
             
+            // Annuler l'édition
+            document.getElementById('cancel-edit').addEventListener('click', cancelEdit);
+            
             // Gestion de la recherche
             document.getElementById('search-input').addEventListener('input', (e) => {
                 searchQuery = e.target.value.toLowerCase().trim();
                 filterFriends();
             });
         });
+        
+        // Configurer les onglets
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Désactiver tous les onglets
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Activer l'onglet cliqué
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
         
         // Charger les amis depuis Firestore
         function loadFriends() {
@@ -803,31 +851,39 @@
                 return;
             }
             
-            // Création du nouvel ami dans Firestore
-            friendsCollection.add({
-                name,
-                entries,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                // Réinitialisation du formulaire
-                nameInput.value = '';
-                document.getElementById('entries-container').innerHTML = '';
-                addEntry(); // Ajoute une entrée vide
-                updateEntriesCounter();
-                
-                // Message de confirmation
-                alert(`${name} a été ajouté à votre carnet avec succès !`);
-                
-                // Réinitialiser la recherche
-                document.getElementById('search-input').value = '';
-                searchQuery = '';
-                filterFriends();
-            })
-            .catch(error => {
-                console.error("Erreur lors de l'ajout:", error);
-                alert("Une erreur est survenue lors de l'ajout");
-            });
+            if (currentEditId) {
+                // Mise à jour d'un ami existant
+                friendsCollection.doc(currentEditId).update({
+                    name,
+                    entries,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    resetForm();
+                    switchToFriendsTab();
+                    alert(`${name} a été mis à jour avec succès !`);
+                })
+                .catch(error => {
+                    console.error("Erreur lors de la mise à jour:", error);
+                    alert("Une erreur est survenue lors de la mise à jour");
+                });
+            } else {
+                // Création d'un nouvel ami
+                friendsCollection.add({
+                    name,
+                    entries,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    resetForm();
+                    switchToFriendsTab();
+                    alert(`${name} a été ajouté à votre carnet avec succès !`);
+                })
+                .catch(error => {
+                    console.error("Erreur lors de l'ajout:", error);
+                    alert("Une erreur est survenue lors de l'ajout");
+                });
+            }
         }
         
         // Afficher une carte d'ami
@@ -892,7 +948,7 @@
             friendCard.querySelector('.edit-friend').addEventListener('click', (e) => {
                 const id = e.target.getAttribute('data-id') || 
                           e.target.parentElement.getAttribute('data-id');
-                editFriend(id, friend);
+                editFriend(id);
             });
         }
         
@@ -900,14 +956,6 @@
         function deleteFriend(id) {
             if (confirm("Êtes-vous sûr de vouloir supprimer cet ami ?")) {
                 friendsCollection.doc(id).delete()
-                    .then(() => {
-                        // Réinitialiser la recherche si nécessaire
-                        if (searchQuery) {
-                            document.getElementById('search-input').value = '';
-                            searchQuery = '';
-                            filterFriends();
-                        }
-                    })
                     .catch(error => {
                         console.error("Erreur lors de la suppression:", error);
                         alert("Une erreur est survenue lors de la suppression");
@@ -916,9 +964,13 @@
         }
         
         // Éditer un ami
-        function editFriend(id, friend) {
-            // Remplir le formulaire avec les données existantes
+        function editFriend(id) {
+            const friend = allFriends.find(f => f.id === id);
+            if (!friend) return;
+            
+            // Remplir le formulaire
             document.getElementById('friend-name').value = friend.name;
+            document.getElementById('form-title').textContent = `Modifier ${friend.name}`;
             
             // Vider les entrées existantes
             const container = document.getElementById('entries-container');
@@ -934,86 +986,47 @@
             
             updateEntriesCounter();
             
-            // Changer le bouton de sauvegarde pour mettre à jour
-            const saveBtn = document.getElementById('save-friend');
-            saveBtn.innerHTML = '<i class="fas fa-save"></i> Mettre à jour';
-            saveBtn.onclick = function() {
-                updateFriend(id);
-            };
+            // Activer le mode édition
+            currentEditId = id;
+            document.getElementById('cancel-edit').style.display = 'inline-flex';
+            document.getElementById('edit-badge').style.display = 'block';
             
-            // Faire défiler jusqu'au formulaire
-            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+            // Basculer vers l'onglet de formulaire
+            switchToFormTab();
         }
         
-        // Mettre à jour un ami existant
-        function updateFriend(id) {
-            const nameInput = document.getElementById('friend-name');
-            const name = nameInput.value.trim();
-            
-            // Validation du nom
-            if (!name) {
-                alert("Veuillez entrer un nom pour votre ami.");
-                nameInput.focus();
-                return;
-            }
-            
-            // Collecte des entrées
-            const entries = [];
-            const entryItems = document.querySelectorAll('.entry-item');
-            
-            entryItems.forEach(item => {
-                const type = item.querySelector('.entry-type').value;
-                const content = item.querySelector('.entry-content').value.trim();
-                
-                if (content) {
-                    entries.push({ type, content });
-                }
-            });
-            
-            // Validation des entrées
-            if (entries.length === 0) {
-                alert("Veuillez ajouter au moins une entrée (allergie, aliment aimé, etc.)");
-                return;
-            }
-            
-            // Mise à jour dans Firestore
-            friendsCollection.doc(id).update({
-                name,
-                entries,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                // Réinitialisation du formulaire
-                nameInput.value = '';
-                document.getElementById('entries-container').innerHTML = '';
-                addEntry(); // Ajoute une entrée vide
-                updateEntriesCounter();
-                
-                // Remettre le bouton en mode "ajout"
-                const saveBtn = document.getElementById('save-friend');
-                saveBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer cet ami';
-                saveBtn.onclick = saveFriend;
-                
-                // Message de confirmation
-                alert(`${name} a été mis à jour avec succès !`);
-                
-                // Réinitialiser la recherche si nécessaire
-                if (searchQuery) {
-                    document.getElementById('search-input').value = '';
-                    searchQuery = '';
-                    filterFriends();
-                }
-            })
-            .catch(error => {
-                console.error("Erreur lors de la mise à jour:", error);
-                alert("Une erreur est survenue lors de la mise à jour");
-            });
+        // Annuler l'édition
+        function cancelEdit() {
+            resetForm();
+            switchToFriendsTab();
+        }
+        
+        // Réinitialiser le formulaire
+        function resetForm() {
+            document.getElementById('friend-name').value = '';
+            document.getElementById('entries-container').innerHTML = '';
+            addEntry(); // Ajoute une entrée vide
+            updateEntriesCounter();
+            document.getElementById('form-title').textContent = 'Ajouter un ami';
+            document.getElementById('cancel-edit').style.display = 'none';
+            document.getElementById('edit-badge').style.display = 'none';
+            currentEditId = null;
+        }
+        
+        // Basculer vers l'onglet Liste des amis
+        function switchToFriendsTab() {
+            document.querySelector('.tab[data-tab="friends-list"]').click();
+        }
+        
+        // Basculer vers l'onglet Formulaire
+        function switchToFormTab() {
+            document.querySelector('.tab[data-tab="friend-form"]').click();
         }
         
         // Générer la liste d'entrées
         function renderEntryList(items, type) {
             if (items.length === 0) {
-                return `<p class="empty-info">Aucune information</p>`;
+                return `<p class="empty-info">-</p>`;
             }
             
             let icon, styleClass;
