@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notre Carnet Gourmand</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Import Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --secondary: #FF9800;
+            --danger: #F44336;
+            --info: #2196F3;
+            --light: #F5F5F5;
+            --dark: #333;
+            --gray: #757575;
+            --border: #E0E0E0;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 0 0 15px 15px;
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+        
+        header h1 {
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            opacity: 0.9;
+        }
+        
+        /* Barre de recherche */
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .search-bar {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding-left: 50px;
+            transition: all 0.3s;
+        }
+        
+        .search-bar:focus {
+            outline: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        .app-description {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            margin-bottom: 35px;
+            text-align: center;
+            border-left: 5px solid var(--secondary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-description::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--info));
+        }
+        
+        .app-description h2 {
+            color: var(--primary-dark);
+            margin-bottom: 18px;
+            font-size: 1.8rem;
+        }
+        
+        .app-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-section, .friends-section {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .form-section:hover, .friends-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+        }
+        
+        .section-title i {
+            margin-right: 12px;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            background: white;
+        }
+        
+        .preferences-container {
+            margin-top: 15px;
+        }
+        
+        .entry-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        
+        .type-select {
+            flex: 0 0 140px;
+        }
+        
+        .entry-input {
+            flex: 1;
+        }
+        
+        .entry-actions {
+            flex: 0 0 40px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 6px var(--shadow);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px var(--shadow);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #2E7D32);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), #F57C00);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #F57C00, #EF6C00);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, var(--info), #1976D2);
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: linear-gradient(135deg, #1976D2, #1565C0);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #D32F2F);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #D32F2F, #C62828);
+        }
+        
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        .friends-list {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+        
+        .friend-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .friend-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
+        
+        .friend-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .friend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .friend-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+        
+        .friend-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .friend-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .detail-group {
+            background: rgba(245, 245, 245, 0.6);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+        }
+        
+        .detail-group h4 {
+            margin-bottom: 12px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+        
+        .detail-group h4 i {
+            margin-right: 10px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--primary);
+        }
+        
+        .pref-list {
+            list-style-type: none;
+        }
+        
+        .pref-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px dashed rgba(0,0,0,0.08);
+        }
+        
+        .pref-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .pref-list li i {
+            margin-right: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .allergy i {
+            background: rgba(244, 67, 54, 0.15);
+            color: var(--danger);
+        }
+        
+        .like i {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--primary);
+        }
+        
+        .dislike i {
+            background: rgba(255, 152, 0, 0.15);
+            color: var(--secondary);
+        }
+        
+        .note i {
+            background: rgba(33, 150, 243, 0.15);
+            color: var(--info);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--gray);
+            background: rgba(245, 245, 245, 0.5);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #BDBDBD;
+            opacity: 0.7;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--gray);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            margin-top: 40px;
+            color: var(--gray);
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .entries-counter {
+            text-align: center;
+            margin: 15px 0;
+            font-weight: 500;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .action-button {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .search-results-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--gray);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-utensils"></i> Notre Carnet Gourmand</h1>
+            <p>Enregistrez les allergies et préférences de vos amis pour des repas parfaits</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Barre de recherche -->
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-input" class="search-bar" placeholder="Rechercher un ami ou une préférence...">
+        </div>
+        
+        <div id="search-results-info" class="search-results-info" style="display: none;"></div>
+        
+        <div class="app-layout">
+            <div class="form-section">
+                <h3 class="section-title"><i class="fas fa-user-edit"></i> Ajouter un ami</h3>
+                
+                <div class="form-group">
+                    <label for="friend-name"><i class="fas fa-user"></i> Nom de l'ami</label>
+                    <input type="text" id="friend-name" placeholder="Entrez le nom complet">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-list"></i> Entrées de préférences</label>
+                    <div class="preferences-container" id="entries-container">
+                        <div class="entry-item">
+                            <div class="type-select">
+                                <select class="entry-type">
+                                    <option value="allergy">Allergie</option>
+                                    <option value="like">Aime</option>
+                                    <option value="dislike">N'aime pas</option>
+                                    <option value="note">Note</option>
+                                </select>
+                            </div>
+                            <div class="entry-input">
+                                <input type="text" class="entry-content" placeholder="Ex: Noix, Vegan, Préfère le poisson...">
+                            </div>
+                            <div class="entry-actions">
+                                <button class="btn btn-danger btn-sm remove-entry"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="entries-counter" id="entries-counter">1 entrée</div>
+                    
+                    <div class="action-button">
+                        <button class="btn btn-info" id="add-entry">
+                            <i class="fas fa-plus-circle"></i> Ajouter une entrée
+                        </button>
+                        <button class="btn btn-secondary" id="clear-entries">
+                            <i class="fas fa-broom"></i> Tout effacer
+                        </button>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary btn-block" id="save-friend">
+                    <i class="fas fa-save"></i> Enregistrer cet ami
+                </button>
+            </div>
+            
+            <div class="friends-section">
+                <h3 class="section-title"><i class="fas fa-users"></i> Nos Amis</h3>
+                
+                <div class="friends-list" id="friends-list">
+                    <div class="empty-state">
+                        <i class="fas fa-user-friends"></i>
+                        <h3>Aucun ami enregistré</h3>
+                        <p>Commencez par ajouter un ami à votre carnet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p><i class="fas fa-heart"></i> Carnet Gourmand - Préférences Alimentaires | Gardez une trace des goûts de vos amis pour des repas réussis !</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Configuration Firebase - À REMPLACER AVEC VOS INFORMATIONS
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3zpS_NT8sHN4j0upcAd8jmpfhsgXtdRw",
+            authDomain: "paris-entre-amis-598e9.firebaseapp.com",
+            projectId: "paris-entre-amis-598e9",
+            storageBucket: "paris-entre-amis-598e9.firebasestorage.app",
+            messagingSenderId: "638642602040",
+            appId: "1:638642602040:web:0f7557f7d4923b6aec26cd"
+        };
+        
+        // Initialisation Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Référence Firestore
+        const friendsCollection = db.collection('privateCards/Carnet Gourmand/Carnet Gourmand');
+        
+        // Variables pour la recherche
+        let allFriends = [];
+        let searchQuery = '';
+        
+        // Initialisation de l'application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Charger les amis depuis Firestore
+            loadFriends();
+            
+            // Gestion de l'ajout d'entrées
+            document.getElementById('add-entry').addEventListener('click', addEntry);
+            
+            // Gestion de la suppression d'entrées
+            document.getElementById('entries-container').addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-entry') || 
+                    e.target.parentElement.classList.contains('remove-entry')) {
+                    const entryItem = e.target.closest('.entry-item');
+                    if (document.querySelectorAll('.entry-item').length > 1) {
+                        entryItem.remove();
+                        updateEntriesCounter();
+                    }
+                }
+            });
+            
+            // Effacer toutes les entrées
+            document.getElementById('clear-entries').addEventListener('click', () => {
+                const container = document.getElementById('entries-container');
+                container.innerHTML = '';
+                addEntry(); // Ajoute une entrée vide après avoir tout effacé
+                updateEntriesCounter();
+            });
+            
+            // Sauvegarder un ami
+            document.getElementById('save-friend').addEventListener('click', saveFriend);
+            
+            // Gestion de la recherche
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                filterFriends();
+            });
+        });
+        
+        // Charger les amis depuis Firestore
+        function loadFriends() {
+            friendsCollection.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                allFriends = [];
+                const friendsList = document.getElementById('friends-list');
+                friendsList.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    friendsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-user-friends"></i>
+                            <h3>Aucun ami enregistré</h3>
+                            <p>Commencez par ajouter un ami à votre carnet</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const friend = { id: doc.id, ...doc.data() };
+                    allFriends.push(friend);
+                });
+                
+                filterFriends(); // Applique le filtre de recherche actuel
+            }, error => {
+                console.error("Erreur Firestore:", error);
+            });
+        }
+        
+        // Filtrer les amis selon la recherche
+        function filterFriends() {
+            const friendsList = document.getElementById('friends-list');
+            const resultsInfo = document.getElementById('search-results-info');
+            
+            if (allFriends.length === 0) {
+                friendsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-user-friends"></i>
+                        <h3>Aucun ami enregistré</h3>
+                        <p>Commencez par ajouter un ami à votre carnet</p>
+                    </div>
+                `;
+                resultsInfo.style.display = 'none';
+                return;
+            }
+            
+            let filteredFriends = allFriends;
+            
+            if (searchQuery) {
+                filteredFriends = allFriends.filter(friend => {
+                    // Recherche dans le nom
+                    if (friend.name.toLowerCase().includes(searchQuery)) {
+                        return true;
+                    }
+                    
+                    // Recherche dans les entrées
+                    return friend.entries.some(entry => 
+                        entry.content.toLowerCase().includes(searchQuery)
+                    );
+                });
+            }
+            
+            // Afficher les résultats
+            friendsList.innerHTML = '';
+            
+            if (filteredFriends.length === 0) {
+                friendsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>Aucun résultat trouvé</h3>
+                        <p>Essayez avec d'autres termes de recherche</p>
+                    </div>
+                `;
+            } else {
+                filteredFriends.forEach(friend => {
+                    renderFriendCard(friend);
+                });
+            }
+            
+            // Afficher les informations sur les résultats
+            if (searchQuery) {
+                resultsInfo.textContent = `${filteredFriends.length} ami${filteredFriends.length > 1 ? 's' : ''} trouvé${filteredFriends.length > 1 ? 's' : ''} pour "${searchQuery}"`;
+                resultsInfo.style.display = 'block';
+            } else {
+                resultsInfo.style.display = 'none';
+            }
+        }
+        
+        // Ajouter une nouvelle entrée
+        function addEntry() {
+            const container = document.getElementById('entries-container');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'entry-item';
+            newEntry.innerHTML = `
+                <div class="type-select">
+                    <select class="entry-type">
+                        <option value="allergy">Allergie</option>
+                        <option value="like">Aime</option>
+                        <option value="dislike">N'aime pas</option>
+                        <option value="note">Note</option>
+                    </select>
+                </div>
+                <div class="entry-input">
+                    <input type="text" class="entry-content" placeholder="Ex: Gluten, Aime les pâtes, Note importante...">
+                </div>
+                <div class="entry-actions">
+                    <button class="btn btn-danger btn-sm remove-entry"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            container.appendChild(newEntry);
+            updateEntriesCounter();
+        }
+        
+        // Mettre à jour le compteur d'entrées
+        function updateEntriesCounter() {
+            const count = document.querySelectorAll('.entry-item').length;
+            const counter = document.getElementById('entries-counter');
+            counter.textContent = `${count} entrée${count > 1 ? 's' : ''}`;
+        }
+        
+        // Sauvegarder un nouvel ami
+        function saveFriend() {
+            const nameInput = document.getElementById('friend-name');
+            const name = nameInput.value.trim();
+            
+            // Validation du nom
+            if (!name) {
+                alert("Veuillez entrer un nom pour votre ami.");
+                nameInput.focus();
+                return;
+            }
+            
+            // Collecte des entrées
+            const entries = [];
+            const entryItems = document.querySelectorAll('.entry-item');
+            
+            entryItems.forEach(item => {
+                const type = item.querySelector('.entry-type').value;
+                const content = item.querySelector('.entry-content').value.trim();
+                
+                if (content) {
+                    entries.push({ type, content });
+                }
+            });
+            
+            // Validation des entrées
+            if (entries.length === 0) {
+                alert("Veuillez ajouter au moins une entrée (allergie, aliment aimé, etc.)");
+                return;
+            }
+            
+            // Création du nouvel ami dans Firestore
+            friendsCollection.add({
+                name,
+                entries,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // Réinitialisation du formulaire
+                nameInput.value = '';
+                document.getElementById('entries-container').innerHTML = '';
+                addEntry(); // Ajoute une entrée vide
+                updateEntriesCounter();
+                
+                // Message de confirmation
+                alert(`${name} a été ajouté à votre carnet avec succès !`);
+                
+                // Réinitialiser la recherche
+                document.getElementById('search-input').value = '';
+                searchQuery = '';
+                filterFriends();
+            })
+            .catch(error => {
+                console.error("Erreur lors de l'ajout:", error);
+                alert("Une erreur est survenue lors de l'ajout");
+            });
+        }
+        
+        // Afficher une carte d'ami
+        function renderFriendCard(friend) {
+            const container = document.getElementById('friends-list');
+            const friendCard = document.createElement('div');
+            friendCard.className = 'friend-card';
+            
+            // Grouper les entrées par type
+            const groupedEntries = {
+                allergy: [],
+                like: [],
+                dislike: [],
+                note: []
+            };
+            
+            friend.entries.forEach(entry => {
+                groupedEntries[entry.type].push(entry.content);
+            });
+            
+            friendCard.innerHTML = `
+                <div class="friend-header">
+                    <div class="friend-name">${friend.name}</div>
+                    <div class="friend-actions">
+                        <button class="btn btn-secondary btn-sm edit-friend" data-id="${friend.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-friend" data-id="${friend.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="friend-details">
+                    <div class="detail-group">
+                        <h4><i class="fas fa-allergies"></i> Allergies</h4>
+                        ${renderEntryList(groupedEntries.allergy, 'allergy')}
+                    </div>
+                    <div class="detail-group">
+                        <h4><i class="fas fa-heart"></i> Aime</h4>
+                        ${renderEntryList(groupedEntries.like, 'like')}
+                    </div>
+                    <div class="detail-group">
+                        <h4><i class="fas fa-ban"></i> N'aime pas</h4>
+                        ${renderEntryList(groupedEntries.dislike, 'dislike')}
+                    </div>
+                    <div class="detail-group">
+                        <h4><i class="fas fa-sticky-note"></i> Notes</h4>
+                        ${renderEntryList(groupedEntries.note, 'note')}
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(friendCard);
+            
+            // Ajouter les écouteurs pour les boutons d'action
+            friendCard.querySelector('.delete-friend').addEventListener('click', (e) => {
+                const id = e.target.getAttribute('data-id') || 
+                          e.target.parentElement.getAttribute('data-id');
+                deleteFriend(id);
+            });
+            
+            friendCard.querySelector('.edit-friend').addEventListener('click', (e) => {
+                const id = e.target.getAttribute('data-id') || 
+                          e.target.parentElement.getAttribute('data-id');
+                editFriend(id, friend);
+            });
+        }
+        
+        // Supprimer un ami
+        function deleteFriend(id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer cet ami ?")) {
+                friendsCollection.doc(id).delete()
+                    .then(() => {
+                        // Réinitialiser la recherche si nécessaire
+                        if (searchQuery) {
+                            document.getElementById('search-input').value = '';
+                            searchQuery = '';
+                            filterFriends();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erreur lors de la suppression:", error);
+                        alert("Une erreur est survenue lors de la suppression");
+                    });
+            }
+        }
+        
+        // Éditer un ami
+        function editFriend(id, friend) {
+            // Remplir le formulaire avec les données existantes
+            document.getElementById('friend-name').value = friend.name;
+            
+            // Vider les entrées existantes
+            const container = document.getElementById('entries-container');
+            container.innerHTML = '';
+            
+            // Ajouter les entrées existantes
+            friend.entries.forEach(entry => {
+                addEntry();
+                const lastEntry = container.lastElementChild;
+                lastEntry.querySelector('.entry-type').value = entry.type;
+                lastEntry.querySelector('.entry-content').value = entry.content;
+            });
+            
+            updateEntriesCounter();
+            
+            // Changer le bouton de sauvegarde pour mettre à jour
+            const saveBtn = document.getElementById('save-friend');
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Mettre à jour';
+            saveBtn.onclick = function() {
+                updateFriend(id);
+            };
+            
+            // Faire défiler jusqu'au formulaire
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Mettre à jour un ami existant
+        function updateFriend(id) {
+            const nameInput = document.getElementById('friend-name');
+            const name = nameInput.value.trim();
+            
+            // Validation du nom
+            if (!name) {
+                alert("Veuillez entrer un nom pour votre ami.");
+                nameInput.focus();
+                return;
+            }
+            
+            // Collecte des entrées
+            const entries = [];
+            const entryItems = document.querySelectorAll('.entry-item');
+            
+            entryItems.forEach(item => {
+                const type = item.querySelector('.entry-type').value;
+                const content = item.querySelector('.entry-content').value.trim();
+                
+                if (content) {
+                    entries.push({ type, content });
+                }
+            });
+            
+            // Validation des entrées
+            if (entries.length === 0) {
+                alert("Veuillez ajouter au moins une entrée (allergie, aliment aimé, etc.)");
+                return;
+            }
+            
+            // Mise à jour dans Firestore
+            friendsCollection.doc(id).update({
+                name,
+                entries,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // Réinitialisation du formulaire
+                nameInput.value = '';
+                document.getElementById('entries-container').innerHTML = '';
+                addEntry(); // Ajoute une entrée vide
+                updateEntriesCounter();
+                
+                // Remettre le bouton en mode "ajout"
+                const saveBtn = document.getElementById('save-friend');
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer cet ami';
+                saveBtn.onclick = saveFriend;
+                
+                // Message de confirmation
+                alert(`${name} a été mis à jour avec succès !`);
+                
+                // Réinitialiser la recherche si nécessaire
+                if (searchQuery) {
+                    document.getElementById('search-input').value = '';
+                    searchQuery = '';
+                    filterFriends();
+                }
+            })
+            .catch(error => {
+                console.error("Erreur lors de la mise à jour:", error);
+                alert("Une erreur est survenue lors de la mise à jour");
+            });
+        }
+        
+        // Générer la liste d'entrées
+        function renderEntryList(items, type) {
+            if (items.length === 0) {
+                return `<p class="empty-info">Aucune information</p>`;
+            }
+            
+            let icon, styleClass;
+            
+            switch(type) {
+                case 'allergy':
+                    icon = 'fas fa-exclamation-triangle';
+                    styleClass = 'allergy';
+                    break;
+                case 'like':
+                    icon = 'fas fa-thumbs-up';
+                    styleClass = 'like';
+                    break;
+                case 'dislike':
+                    icon = 'fas fa-thumbs-down';
+                    styleClass = 'dislike';
+                    break;
+                case 'note':
+                    icon = 'fas fa-comment';
+                    styleClass = 'note';
+                    break;
+                default:
+                    icon = 'fas fa-circle';
+            }
+            
+            return `
+                <ul class="pref-list">
+                    ${items.map(item => `
+                        <li class="${styleClass}">
+                            <i class="${icon}"></i> ${item}
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+    </script>
+</body>
+</html>
