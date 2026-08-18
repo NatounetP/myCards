@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Desk · Groups &amp; Firebase</title>
+<style>
+  /* ——— Styles unchanged ——— */
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --walnut: #3E2C21;
+    --walnut-2: #573D2C;
+    --walnut-3: #6E4E37;
+    --walnut-edge: #2B1D15;
+    --paper: #EFE6D2;
+    --paper-2: #E4D8BC;
+    --paper-3: #DACBA6;
+    --ink: #2A2118;
+    --ink-soft: #5B4E3F;
+    --brass: #C6A059;
+    --brass-light: #E3C687;
+    --brass-dark: #8F7038;
+    --pine: #3C5A48;
+    --pine-light: #547a63;
+    --rust: #9C4A3B;
+    --rust-light: #C97362;
+    --note-yellow: #F0CE5E;
+    --note-sage: #9BB894;
+    --note-sky: #93B4C7;
+    --note-blush: #D3A197;
+    --radius-s: 4px;
+    --radius-m: 8px;
+    --shadow-soft: 0 2px 6px rgba(20, 12, 5, 0.25);
+    --shadow-deep: 0 10px 24px rgba(20, 12, 5, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(ellipse at top left, #4a3323 0%, transparent 60%),
+                linear-gradient(160deg, var(--walnut) 0%, var(--walnut-2) 55%, var(--walnut-3) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: repeating-linear-gradient(100deg, #000 0px, transparent 1px, transparent 3px, #000 4px);
+    mix-blend-mode: overlay;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 28px 80px;
+    position: relative;
+  }
+
+  /* ——— Header ——— */
+  header.desk-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(198, 160, 89, 0.25);
+  }
+  .title-block h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 2.6rem;
+    color: var(--paper);
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+  .header-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .ghost-btn {
+    background: transparent;
+    border: 1px solid rgba(198, 160, 89, 0.4);
+    color: var(--brass-light);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .ghost-btn:hover { background: rgba(198, 160, 89, 0.12); border-color: var(--brass); color: var(--brass-light); }
+
+  /* ——— Search row ——— */
+  .search-row {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper);
+    border-radius: 999px;
+    padding: 9px 16px;
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 400px;
+  }
+  .search-box svg { flex-shrink: 0; opacity: 0.55; }
+  .search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    width: 100%;
+  }
+  .search-box input::placeholder { color: var(--ink-soft); opacity: 0.7; }
+
+  /* ——— Section labels ——— */
+  .section-label {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 38px 0 14px;
+  }
+  .section-label h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--paper);
+    margin: 0;
+  }
+  .section-label .rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(198, 160, 89, 0.5), transparent);
+  }
+  .section-label .hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--brass-light);
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ——— Groups bar ——— */
+  .groups-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-m);
+    margin-bottom: 20px;
+    border: 1px solid rgba(198, 160, 89, 0.12);
+  }
+  .groups-bar .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(239, 230, 210, 0.5);
+    margin-right: 4px;
+  }
+  .group-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 10px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.12s ease;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--paper);
+  }
+  .group-tag .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .group-tag:hover { background: rgba(255, 255, 255, 0.16); }
+  .group-tag.active { border-color: var(--brass-light); background: rgba(198, 160, 89, 0.18); }
+  .group-tag .gdel {
+    background: none;
+    border: none;
+    color: rgba(239, 230, 210, 0.35);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+    font-family: 'Inter', sans-serif;
+  }
+  .group-tag .gdel:hover { color: var(--rust-light); }
+  .add-group-btn {
+    background: transparent;
+    border: 1.5px dashed rgba(239, 230, 210, 0.3);
+    color: rgba(239, 230, 210, 0.5);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 0.72rem;
+    font-family: 'IBM Plex Mono', monospace;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .add-group-btn:hover { border-color: var(--brass-light); color: var(--brass-light); background: rgba(198, 160, 89, 0.06); }
+  .group-form-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 4px 8px 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(198, 160, 89, 0.25);
+  }
+  .group-form-inline input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--paper);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    padding: 4px 0;
+    min-width: 80px;
+  }
+  .group-form-inline input::placeholder { color: rgba(239, 230, 210, 0.4); }
+  .group-form-inline .swatches-inline { display: flex; gap: 4px; }
+  .group-form-inline .swatches-inline span {
+    width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink: 0;
+  }
+  .group-form-inline .swatches-inline span.selected { border-color: var(--paper); }
+  .group-form-inline .gcommit {
+    background: var(--pine); border: none; border-radius: 999px; color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 4px 14px; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .group-form-inline .gcommit:hover { background: #476b56; }
+  .group-form-inline .gcancel {
+    background: transparent; border: none; color: rgba(239, 230, 210, 0.4); cursor: pointer; font-size: 1.1rem; padding: 0 4px;
+  }
+
+  /* ——— Desktop & cards ——— */
+  .desktop-surface {
+    background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.05));
+    border-radius: var(--radius-m);
+    padding: 22px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.35);
+    transition: box-shadow 0.15s ease;
+  }
+  .desktop-surface.drop-hover { box-shadow: inset 0 2px 10px rgba(0,0,0,0.35), 0 0 0 2px var(--brass-light); }
+  .pinned-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+
+  .card-move {
+    border: 1px solid rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.35);
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 2px 4px;
+    cursor: pointer;
+    color: #332912;
+    max-width: 96px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.5);
+  }
+
+  /* ——— Sticky notes (straight) ——— */
+  .sticky {
+    position: relative;
+    padding: 16px 14px 10px;
+    border-radius: 2px;
+    box-shadow: var(--shadow-soft), 0 1px 0 rgba(255,255,255,0.15) inset;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    color: #332912;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sticky.dragging { opacity: 0.4; }
+  .sticky[data-color="yellow"] { background: var(--note-yellow); }
+  .sticky[data-color="sage"] { background: var(--note-sage); }
+  .sticky[data-color="sky"] { background: var(--note-sky); }
+  .sticky[data-color="blush"] { background: var(--note-blush); }
+  .sticky .pin {
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #e6483a, #7a1f16);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.4);
+  }
+  .sticky-text {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    line-height: inherit;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    cursor: text;
+  }
+  .sticky[data-empty="true"] .sticky-text::before {
+    content: attr(data-placeholder);
+    opacity: 0.5;
+  }
+  .sticky.size-small .sticky-text { min-height: 40px; max-height: 64px; overflow-y: auto; }
+  .sticky.size-medium .sticky-text { min-height: 80px; max-height: 120px; overflow-y: auto; }
+  .sticky.size-large .sticky-text { min-height: 150px; max-height: 220px; overflow-y: auto; }
+  .sticky.size-auto .sticky-text { min-height: 40px; }
+  .sticky-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .sticky-footer .left-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .sticky-colors { display: flex; gap: 5px; }
+  .sticky-colors span {
+    width: 10px; height: 10px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,0.15);
+  }
+  .sticky-colors span[data-c="yellow"] { background: var(--note-yellow); }
+  .sticky-colors span[data-c="sage"] { background: var(--note-sage); }
+  .sticky-colors span[data-c="sky"] { background: var(--note-sky); }
+  .sticky-colors span[data-c="blush"] { background: var(--note-blush); }
+  .sticky-sizes { display: flex; gap: 3px; }
+  .sticky-sizes button {
+    width: 18px; height: 18px;
+    border: 1px solid rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    cursor: pointer;
+    color: #332912;
+    line-height: 1;
+    padding: 0;
+  }
+  .sticky-sizes button.active { background: rgba(0,0,0,0.25); color: #fff; }
+  .sticky-del {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(40,30,10,0.55);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .sticky-del:hover { color: var(--rust); }
+
+  .group-badge {
+    display: inline-block;
+    font-size: 0.58rem;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1px 10px 1px 8px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.12);
+    color: rgba(40,30,10,0.7);
+    border: 1px solid rgba(0,0,0,0.08);
+    cursor: default;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .group-badge .dot {
+    display: inline-block;
+    width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; vertical-align: middle;
+  }
+  .group-select {
+    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(255,255,255,0.4);
+    border-radius: 999px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    padding: 2px 8px 2px 6px;
+    cursor: pointer;
+    color: #332912;
+    max-width: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .group-select option { background: var(--paper); color: var(--ink); }
+
+  /* ——— List card ——— */
+  .list-card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 14px 14px 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 0 rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.06);
+    cursor: grab;
+    transition: border-color 0.15s ease;
+  }
+  .list-card.dragging { opacity: 0.4; }
+  .list-card[data-color="yellow"] { border-left: 4px solid var(--note-yellow); }
+  .list-card[data-color="sage"] { border-left: 4px solid var(--note-sage); }
+  .list-card[data-color="sky"] { border-left: 4px solid var(--note-sky); }
+  .list-card[data-color="blush"] { border-left: 4px solid var(--note-blush); }
+  .list-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed rgba(42,33,24,0.15);
+    padding-bottom: 8px;
+  }
+  .list-card-head h4 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+    outline: none;
+    flex: 1;
+    cursor: text;
+  }
+  .list-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .list-del {
+    background: transparent; border: none; cursor: pointer;
+    color: rgba(42,33,24,0.3);
+    font-size: 0.85rem;
+  }
+  .list-del:hover { color: var(--rust); }
+  .list-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0,0,0,0.04);
+  }
+  .list-footer .left-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+  }
+  .item-row input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: var(--pine);
+    cursor: pointer;
+  }
+  .item-row span.item-text {
+    flex: 1;
+    font-size: 0.88rem;
+    line-height: 1.35;
+    outline: none;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    cursor: text;
+  }
+  .item-row.done span.item-text {
+    text-decoration: line-through;
+    color: rgba(42,33,24,0.4);
+  }
+  .item-del {
+    background: transparent; border: none; cursor: pointer;
+    color: rgba(42,33,24,0.25);
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .item-row:hover .item-del { opacity: 1; }
+  .item-del:hover { color: var(--rust); }
+  .add-item-row {
+    margin-top: 6px;
+    display: flex;
+    gap: 6px;
+  }
+  .add-item-row input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid rgba(42,33,24,0.2);
+    padding: 5px 2px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    background: transparent;
+  }
+  .add-item-row input:focus { border-color: var(--pine); }
+
+  /* ——— Add tiles ——— */
+  .add-tile {
+    min-height: 96px;
+    border: 1.5px dashed rgba(239,230,210,0.35);
+    border-radius: var(--radius-s);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(239,230,210,0.55);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    text-align: center;
+    padding: 10px;
+    gap: 8px;
+  }
+  .add-tile:hover { border-color: var(--brass-light); color: var(--brass-light); background: rgba(198,160,89,0.06); }
+  .add-choice { display: flex; gap: 8px; }
+  .add-choice button {
+    flex: 1;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(239,230,210,0.35);
+    background: transparent;
+    color: rgba(239,230,210,0.8);
+    cursor: pointer;
+  }
+  .add-choice button:hover { background: rgba(198,160,89,0.15); border-color: var(--brass-light); }
+  .add-choice-panel {
+    min-height: 96px;
+    border: 1.5px dashed rgba(239,230,210,0.35);
+    border-radius: var(--radius-s);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+  }
+  .add-choice-panel.on-paper { border-color: rgba(42,33,24,0.2); }
+  .add-choice-panel.on-paper .add-choice button {
+    color: var(--ink-soft);
+    border-color: rgba(42,33,24,0.25);
+  }
+  .add-choice-panel.on-paper .add-choice button:hover {
+    background: rgba(60,90,72,0.08);
+    border-color: var(--pine);
+    color: var(--pine);
+  }
+  .empty-msg {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: rgba(239,230,210,0.5);
+    padding: 10px 2px;
+  }
+
+  /* ——— Drawers ——— */
+  .drawer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .drawer {
+    position: relative;
+    border-radius: var(--radius-s);
+    padding: 18px 16px 16px;
+    min-height: 96px;
+    cursor: pointer;
+    background: linear-gradient(180deg, var(--drawer-c-light, #7a5a3f), var(--drawer-c, #5c4230));
+    box-shadow: var(--shadow-soft), inset 0 0 0 1px rgba(0,0,0,0.25);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, outline 0.1s ease;
+    border: 1px solid rgba(0,0,0,0.3);
+  }
+  .drawer::after {
+    content: "";
+    position: absolute; left: 14px; right: 14px; top: 8px;
+    height: 1px; background: rgba(255,255,255,0.12);
+  }
+  .drawer:hover { transform: translateY(-2px); box-shadow: var(--shadow-deep); }
+  .drawer.open { outline: 2px solid var(--brass-light); }
+  .drawer.drop-hover { outline: 2px dashed var(--brass-light); transform: translateY(-2px); }
+  .drawer-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--paper);
+    margin: 0 0 6px;
+    outline: none;
+  }
+  .drawer-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(239,230,210,0.65);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .drawer-pull {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 14px;
+    border-radius: 7px;
+    background: linear-gradient(180deg, var(--brass-light), var(--brass-dark));
+    box-shadow: 0 2px 3px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.4);
+  }
+  .drawer-del {
+    position: absolute; top: 8px; right: 8px;
+    background: transparent; border: none; cursor: pointer;
+    color: rgba(239,230,210,0.4);
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    padding: 2px 5px;
+  }
+  .drawer:hover .drawer-del { opacity: 1; }
+  .drawer-del:hover { color: var(--rust-light); }
+  .add-drawer-form {
+    background: rgba(0,0,0,0.15);
+    border-radius: var(--radius-s);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid rgba(198,160,89,0.3);
+  }
+  .add-drawer-form input[type="text"] {
+    background: var(--paper);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+  }
+  .swatches { display: flex; gap: 6px; }
+  .swatches span {
+    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .swatches span.selected { border-color: var(--paper); }
+  .form-row { display: flex; gap: 8px; }
+  .form-row button {
+    flex: 1;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-confirm { background: var(--pine); color: var(--paper); }
+  .btn-confirm:hover { background: #476b56; }
+  .btn-cancel {
+    background: transparent;
+    color: rgba(239,230,210,0.6);
+    border: 1px solid rgba(239,230,210,0.25) !important;
+  }
+  .btn-cancel:hover { color: var(--paper); }
+
+  /* ——— Drawer panel ——— */
+  .drawer-panel {
+    margin-top: 18px;
+    background: var(--paper);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-deep);
+    padding: 22px 24px 26px;
+    animation: slideOpen 0.22s ease;
+    border-top: 6px solid var(--panel-accent, var(--brass));
+  }
+  @keyframes slideOpen {
+    from { opacity: 0; transform: translateY(-10px) scaleY(0.96); transform-origin: top; }
+    to { opacity: 1; transform: translateY(0) scaleY(1); }
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+  .panel-header h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin: 0;
+    color: var(--ink);
+    outline: none;
+  }
+  .panel-close {
+    background: transparent;
+    border: 1px solid rgba(42,33,24,0.25);
+    color: var(--ink-soft);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 7px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .panel-close:hover { background: rgba(42,33,24,0.06); }
+  .list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+    align-items: start;
+    transition: box-shadow 0.15s ease;
+    border-radius: 6px;
+  }
+  .list-grid.drop-hover { box-shadow: 0 0 0 2px var(--pine) inset; }
+  .add-list-card {
+    min-height: 90px;
+    border: 1.5px dashed rgba(42,33,24,0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(42,33,24,0.4);
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: border-color 0.15s ease, color 0.15s ease;
+    padding: 14px;
+  }
+  .add-list-card:hover { border-color: var(--pine); color: var(--pine); }
+  .add-list-form {
+    display: flex;
+    gap: 8px;
+    padding: 6px;
+  }
+  .add-list-form input {
+    flex: 1;
+    border: 1px solid rgba(42,33,24,0.2);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+  }
+  .add-list-form button {
+    border: none;
+    background: var(--pine);
+    color: #fff;
+    border-radius: 4px;
+    padding: 0 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  footer.status {
+    margin-top: 40px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(239,230,210,0.4);
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 520px) {
+    .title-block h1 { font-size: 2rem; }
+    .wrap { padding: 24px 16px 60px; }
+    .groups-bar { padding: 8px 12px; }
+    .group-tag { font-size: 0.7rem; padding: 3px 10px 3px 8px; }
+    .search-box { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="desk-header">
+    <div class="title-block">
+      <h1>The Desk</h1>
+    </div>
+    <div class="header-tools">
+      <button class="ghost-btn" id="newNoteBtn">+ New Note</button>
+      <!-- Clear Desk button removed -->
+    </div>
+  </header>
+
+  <!-- Search row (below buttons) -->
+  <div class="search-row">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2A2118" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Search notes &amp; lists…">
+    </div>
+  </div>
+
+  <!-- GROUPS BAR -->
+  <div class="groups-bar" id="groupsBar">
+    <span class="label">Groups</span>
+    <span id="groupTagsContainer" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></span>
+    <button class="add-group-btn" id="addGroupBtn">+ Group</button>
+  </div>
+
+  <div class="section-label">
+    <h2>On the desk</h2>
+    <div class="rule"></div>
+    <span class="hint">pinned &amp; important — drag onto a drawer to file it away</span>
+  </div>
+  <div class="desktop-surface" id="desktopSurface">
+    <div class="pinned-grid" id="pinnedGrid"></div>
+  </div>
+
+  <div class="section-label">
+    <h2>Drawers</h2>
+    <div class="rule"></div>
+    <span class="hint" id="drawerCountHint"></span>
+  </div>
+  <div class="drawer-grid" id="drawerGrid"></div>
+
+  <div id="panelHost"></div>
+
+  <footer class="status" id="statusLine">synced with Firebase</footer>
+</div>
+
+<!-- FIREBASE CONFIG – updated with your project credentials -->
+<script type="importmap">
+{
+  "imports": {
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"
+  }
+}
+</script>
+
+<script type="module">
+// ——— FIREBASE ———
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+
+// 🔥 Firebase config from concerts.html
+const firebaseConfig = {
+  apiKey: "AIzaSyC3zpS_NT8sHN4j0upcAd8jmpfhsgXtdRw",
+  authDomain: "paris-entre-amis-598e9.firebaseapp.com",
+  projectId: "paris-entre-amis-598e9",
+  storageBucket: "paris-entre-amis-598e9.firebasestorage.app",
+  messagingSenderId: "638642602040",
+  appId: "1:638642602040:web:0f7557f7d4923b6aec26cd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 📁 Path: collection 'privateCards/Notes/Notes' → document 'deskState'
+const DOC_PATH = 'privateCards/Notes/Notes/deskState';
+
+// ——— STATE ———
+const NOTE_COLORS = ['yellow','sage','sky','blush'];
+const NOTE_SIZES = ['small','medium','large','auto'];
+const SIZE_LABEL = { small:'S', medium:'M', large:'L', auto:'A' };
+const DRAWER_COLORS = {
+  walnut:  { c:'#5c4230', light:'#7a5a3f' },
+  pine:    { c:'#3c5a48', light:'#547a63' },
+  rust:    { c:'#7a3a2e', light:'#9c4a3b' },
+  slate:   { c:'#3d4a55', light:'#556676' },
+  plum:    { c:'#513a53', light:'#6e4f71' },
+};
+const GROUP_COLORS = ['#F0CE5E','#9BB894','#93B4C7','#D3A197','#C6A059','#B08A7A','#A67C8E','#7BA88F'];
+
+let state = { pinned: [], drawers: [], groups: [] };
+let openDrawerId = null;
+let filterGroupId = null;
+let saveTimer = null;
+let dragInfo = null;
+let isSaving = false;
+let isInitialLoad = true;
+
+// Focus restoration
+let focusTarget = null;
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function setStatus(text){ document.getElementById('statusLine').textContent = text; }
+
+function findContainer(sourceType, sourceDrawerId){
+  if(sourceType === 'pinned') return state.pinned;
+  const d = state.drawers.find(dd=>dd.id===sourceDrawerId);
+  return d ? d.cards : null;
+}
+
+function normalizeCard(card){
+  if(!card) return;
+  if(card.type === 'note'){
+    if(!card.size || !NOTE_SIZES.includes(card.size)) card.size = 'medium';
+    card.rot = 0;
+    if(!card.color) card.color = 'yellow';
+    if(card.groupId === undefined) card.groupId = null;
+  } else if(card.type === 'list'){
+    if(!card.items) card.items = [];
+    if(!card.color) card.color = 'yellow';
+    if(card.groupId === undefined) card.groupId = null;
+  }
+}
+
+function normalizeState(){
+  if(!state.pinned) state.pinned = [];
+  if(!state.drawers) state.drawers = [];
+  if(!state.groups) state.groups = [];
+  state.pinned.forEach(normalizeCard);
+  state.drawers.forEach(d => { if(!d.cards) d.cards = []; d.cards.forEach(normalizeCard); });
+}
+
+// ——— FIREBASE I/O with 15s debounce ———
+const SAVE_DEBOUNCE_MS = 15000; // 15 seconds
+
+async function loadFromFirebase(){
+  try {
+    const ref = doc(db, DOC_PATH);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      state = snap.data() || { pinned:[], drawers:[], groups:[] };
+    } else {
+      state = { pinned:[], drawers:[], groups:[] };
+    }
+    normalizeState();
+    isInitialLoad = false;
+    render();
+    setStatus('synced from Firebase · '+new Date().toLocaleTimeString());
+  } catch(e){
+    console.warn('Firebase load error, using defaults:', e);
+    state = { pinned:[], drawers:[], groups:[] };
+    normalizeState();
+    isInitialLoad = false;
+    render();
+    setStatus('⚠️ offline — using local');
+  }
+}
+
+function scheduleSave(){
+  if(isInitialLoad) return;
+  clearTimeout(saveTimer);
+  setStatus('⏳ saving in 15s…');
+  saveTimer = setTimeout(async ()=>{
+    try {
+      const ref = doc(db, DOC_PATH);
+      await setDoc(ref, state, { merge: true });
+      setStatus('✅ synced · '+new Date().toLocaleTimeString());
+    } catch(e){
+      console.warn('Firebase save error:', e);
+      setStatus('⚠️ save failed — will retry');
+    }
+  }, SAVE_DEBOUNCE_MS);
+}
+
+function listenRemote(){
+  const ref = doc(db, DOC_PATH);
+  onSnapshot(ref, (snap) => {
+    if(snap.exists()){
+      const remote = snap.data();
+      if(!isSaving){
+        state = remote;
+        normalizeState();
+        render();
+        setStatus('🔄 synced from remote · '+new Date().toLocaleTimeString());
+      }
+    }
+  }, (err) => { console.warn('Firebase snapshot error:', err); });
+}
+
+// ——— HELPERS ———
+function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function matchesSearch(text, q){ if(!q) return true; return (text||'').toLowerCase().includes(q); }
+function cardMatches(card, q){ if(!q) return true; if(card.type === 'note') return matchesSearch(card.text, q); return matchesSearch(card.name, q) || card.items.some(it=>matchesSearch(it.text, q)); }
+function getGroup(id){ return state.groups.find(g=>g.id===id) || null; }
+function getGroupColor(id){ const g=getGroup(id); return g ? g.color : '#888'; }
+function getGroupName(id){ const g=getGroup(id); return g ? g.name : ''; }
+
+function groupOptionsHtml(selectedId, includeNone=true){
+  let html = '';
+  if(includeNone) html += `<option value="">none</option>`;
+  state.groups.forEach(g => {
+    const sel = g.id === selectedId ? 'selected' : '';
+    html += `<option value="${g.id}" ${sel}>${escapeHtml(g.name)}</option>`;
+  });
+  return html;
+}
+
+function buildGroupSelect(card, sourceType, sourceDrawerId){
+  const sel = document.createElement('select');
+  sel.className = 'group-select';
+  const current = card.groupId || '';
+  sel.innerHTML = `<option value="">none</option>` +
+    state.groups.map(g => `<option value="${g.id}" ${g.id===current?'selected':''}>${escapeHtml(g.name)}</option>`).join('');
+  sel.addEventListener('change', ()=>{
+    const val = sel.value || null;
+    const container = findContainer(sourceType, sourceDrawerId);
+    if(!container) return;
+    const item = container.find(c => c.id === card.id);
+    if(item){ item.groupId = val; scheduleSave(); render(); }
+  });
+  return sel;
+}
+
+function buildMoveSelect(currentSourceType, currentDrawerId){
+  const select = document.createElement('select');
+  select.className = 'card-move';
+  select.innerHTML = `<option value="">Move to…</option>`;
+  const deskOpt = document.createElement('option');
+  deskOpt.value = 'pinned';
+  deskOpt.textContent = 'On the desk';
+  if(currentSourceType === 'pinned') deskOpt.disabled = true;
+  select.appendChild(deskOpt);
+  state.drawers.forEach(d=>{
+    const opt = document.createElement('option');
+    opt.value = 'drawer:'+d.id;
+    opt.textContent = d.name;
+    if(currentSourceType === 'drawer' && currentDrawerId === d.id) opt.disabled = true;
+    select.appendChild(opt);
+  });
+  return select;
+}
+
+function moveCard(cardId, fromType, fromDrawerId, toType, toDrawerId){
+  const source = findContainer(fromType, fromDrawerId);
+  if(!source) return;
+  const idx = source.findIndex(c=>c.id===cardId);
+  if(idx === -1) return;
+  const [card] = source.splice(idx,1);
+  const target = findContainer(toType, toDrawerId);
+  if(!target){ source.splice(idx,0,card); return; }
+  target.push(card);
+  scheduleSave();
+  render();
+}
+
+// ——— DRAG & DROP ———
+function attachDrag(el, cardId, sourceType, sourceDrawerId){
+  el.addEventListener('dragstart', (e)=>{
+    dragInfo = { cardId, sourceType, sourceDrawerId };
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try{ e.dataTransfer.setData('text/plain', cardId); } catch(_){}
+  });
+  el.addEventListener('dragend', ()=>{
+    el.classList.remove('dragging');
+    dragInfo = null;
+    clearDropHover();
+  });
+}
+function clearDropHover(){ document.querySelectorAll('.drop-hover').forEach(n=>n.classList.remove('drop-hover')); }
+function makeDropZone(el, toType, toDrawerId){
+  el.addEventListener('dragover', (e)=>{
+    if(!dragInfo) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    el.classList.add('drop-hover');
+  });
+  el.addEventListener('dragleave', ()=>{ el.classList.remove('drop-hover'); });
+  el.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    el.classList.remove('drop-hover');
+    if(!dragInfo) return;
+    moveCard(dragInfo.cardId, dragInfo.sourceType, dragInfo.sourceDrawerId, toType, toDrawerId);
+    dragInfo = null;
+    render();
+  });
+}
+
+// ——— FOCUS RESTORATION ———
+function storeFocusTarget(element){
+  if(!element) return;
+  const cardId = element.dataset.cardId;
+  const fieldType = element.dataset.fieldType;
+  if(cardId && fieldType){
+    focusTarget = { cardId, fieldType };
+  }
+}
+
+function restoreFocus(){
+  if(!focusTarget) return;
+  const { cardId, fieldType } = focusTarget;
+  let selector = `[data-card-id="${cardId}"][data-field-type="${fieldType}"]`;
+  const target = document.querySelector(selector);
+  if(target){
+    target.focus();
+    const range = document.createRange();
+    const sel = window.getSelection();
+    if(target.childNodes.length){
+      const lastNode = target.childNodes[target.childNodes.length-1];
+      range.setStartAfter(lastNode);
+      range.collapse(true);
+    } else {
+      range.selectNodeContents(target);
+      range.collapse(false);
+    }
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
+// ——— BUILDERS (unchanged) ———
+function buildNoteEl(card, sourceType, sourceDrawerId){
+  const el = document.createElement('div');
+  el.className = 'sticky size-'+card.size;
+  el.dataset.color = card.color;
+  el.dataset.empty = card.text ? 'false' : 'true';
+  el.draggable = true;
+
+  const group = getGroup(card.groupId);
+  const groupBadgeHtml = group ?
+    `<span class="group-badge"><span class="dot" style="background:${group.color}"></span>${escapeHtml(group.name)}</span>` :
+    '';
+
+  el.innerHTML = `
+    <div class="pin"></div>
+    <div class="sticky-text" contenteditable="true" spellcheck="false" data-placeholder="Write something…" data-card-id="${card.id}" data-field-type="note-text"></div>
+    <div class="sticky-footer">
+      <div class="left-group">
+        <div class="sticky-colors">${NOTE_COLORS.map(c=>'<span data-c="'+c+'" title="'+c+'"></span>').join('')}</div>
+        <div class="sticky-sizes">${NOTE_SIZES.map(s=>'<button data-s="'+s+'" class="'+(card.size===s?'active':'')+'" title="'+s+'">'+SIZE_LABEL[s]+'</button>').join('')}</div>
+      </div>
+      <button class="sticky-del" title="Remove">✕</button>
+    </div>
+    <div class="sticky-footer">
+      <div class="left-group">${groupBadgeHtml}</div>
+      <div class="left-group">
+        ${buildGroupSelect(card, sourceType, sourceDrawerId).outerHTML}
+        ${buildMoveSelect(sourceType, sourceDrawerId).outerHTML}
+      </div>
+    </div>
+  `;
+
+  const textEl = el.querySelector('.sticky-text');
+  textEl.textContent = card.text || '';
+  textEl.addEventListener('input', ()=>{ card.text = textEl.textContent; el.dataset.empty = card.text ? 'false' : 'true'; scheduleSave(); });
+  textEl.addEventListener('focus', (e)=>{
+    storeFocusTarget(e.target);
+    const range = document.createRange();
+    const sel = window.getSelection();
+    if(e.target.childNodes.length){
+      const lastNode = e.target.childNodes[e.target.childNodes.length-1];
+      range.setStartAfter(lastNode);
+      range.collapse(true);
+    } else {
+      range.selectNodeContents(e.target);
+      range.collapse(false);
+    }
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+
+  el.querySelectorAll('.sticky-colors span').forEach(sw=>{
+    sw.addEventListener('click', ()=>{ card.color = sw.dataset.c; el.dataset.color = sw.dataset.c; scheduleSave(); render(); });
+  });
+  el.querySelectorAll('.sticky-sizes button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      card.size = btn.dataset.s;
+      el.className = 'sticky size-'+card.size;
+      el.querySelectorAll('.sticky-sizes button').forEach(b=>b.classList.toggle('active', b===btn));
+      scheduleSave(); render();
+    });
+  });
+  el.querySelector('.sticky-del').addEventListener('click', ()=>{
+    const container = findContainer(sourceType, sourceDrawerId);
+    const idx = container.findIndex(c=>c.id===card.id);
+    if(idx>-1) container.splice(idx,1);
+    scheduleSave(); render();
+  });
+
+  const groupSel = el.querySelector('.group-select');
+  if(groupSel){
+    groupSel.addEventListener('change', ()=>{
+      const val = groupSel.value || null;
+      const container = findContainer(sourceType, sourceDrawerId);
+      const item = container.find(c=>c.id===card.id);
+      if(item){ item.groupId = val; scheduleSave(); render(); }
+    });
+  }
+  const moveSel = el.querySelector('.card-move');
+  if(moveSel){
+    moveSel.addEventListener('change', ()=>{
+      const v = moveSel.value;
+      if(!v) return;
+      if(v === 'pinned'){ moveCard(card.id, sourceType, sourceDrawerId, 'pinned', null); }
+      else { const id = v.split(':')[1]; moveCard(card.id, sourceType, sourceDrawerId, 'drawer', id); }
+      render();
+    });
+  }
+  attachDrag(el, card.id, sourceType, sourceDrawerId);
+  return el;
+}
+
+function buildListEl(list, sourceType, sourceDrawerId, q){
+  const card = document.createElement('div');
+  card.className = 'list-card';
+  card.dataset.color = list.color || 'yellow';
+  card.draggable = true;
+  const doneCount = list.items.filter(i=>i.done).length;
+  const group = getGroup(list.groupId);
+  const groupBadgeHtml = group ?
+    `<span class="group-badge"><span class="dot" style="background:${group.color}"></span>${escapeHtml(group.name)}</span>` :
+    '';
+
+  card.innerHTML = `
+    <div class="list-card-head">
+      <h4 contenteditable="true" spellcheck="false" data-card-id="${list.id}" data-field-type="list-name">${escapeHtml(list.name||'Untitled list')}</h4>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="list-count">${doneCount}/${list.items.length}</span>
+        <button class="list-del" title="Delete list">✕</button>
+      </div>
+    </div>
+    <div class="items-host"></div>
+    <div class="add-item-row"><input type="text" placeholder="Add item…"></div>
+    <div class="list-footer">
+      <div class="left-group">
+        ${groupBadgeHtml}
+        <div class="sticky-colors" style="display:inline-flex;">
+          ${NOTE_COLORS.map(c=>'<span data-c="'+c+'" title="'+c+'" style="width:12px;height:12px;border-radius:50%;cursor:pointer;border:1px solid rgba(0,0,0,0.15);background:var(--note-'+c+');'+(list.color===c?'outline:2px solid #000;':'')+'"></span>').join('')}
+        </div>
+      </div>
+      <div class="left-group">
+        ${buildGroupSelect(list, sourceType, sourceDrawerId).outerHTML}
+        ${buildMoveSelect(sourceType, sourceDrawerId).outerHTML}
+      </div>
+    </div>
+  `;
+
+  const nameEl = card.querySelector('h4');
+  nameEl.addEventListener('focus', (e)=>{ storeFocusTarget(e.target); });
+  nameEl.addEventListener('blur', ()=>{ list.name = nameEl.textContent.trim() || 'Untitled list'; scheduleSave(); });
+  nameEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); nameEl.blur(); } });
+
+  const itemsHost = card.querySelector('.items-host');
+  list.items.forEach(item=>{
+    if(q && !matchesSearch(item.text,q) && !matchesSearch(list.name,q)) return;
+    const row = document.createElement('div');
+    row.className = 'item-row' + (item.done ? ' done' : '');
+    row.innerHTML = `
+      <input type="checkbox" ${item.done?'checked':''}>
+      <span class="item-text" contenteditable="true" spellcheck="false" data-card-id="${list.id}" data-field-type="item-text" data-item-id="${item.id}"></span>
+      <button class="item-del" title="Remove">✕</button>
+    `;
+    const textSpan = row.querySelector('.item-text');
+    textSpan.textContent = item.text || '';
+    textSpan.addEventListener('focus', (e)=>{ storeFocusTarget(e.target); });
+    textSpan.addEventListener('blur', ()=>{ item.text = textSpan.textContent.trim(); scheduleSave(); });
+    textSpan.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); textSpan.blur(); } });
+    const cb = row.querySelector('input[type="checkbox"]');
+    cb.addEventListener('change', (e)=>{
+      item.done = e.target.checked;
+      row.classList.toggle('done', item.done);
+      scheduleSave();
+      card.querySelector('.list-count').textContent = list.items.filter(i=>i.done).length + '/' + list.items.length;
+    });
+    row.querySelector('.item-del').addEventListener('click', ()=>{
+      list.items = list.items.filter(i=>i.id!==item.id);
+      scheduleSave(); render();
+    });
+    itemsHost.appendChild(row);
+  });
+
+  const addInput = card.querySelector('.add-item-row input');
+  addInput.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){
+      const text = addInput.value.trim();
+      if(!text) return;
+      list.items.push({ id: uid(), text, done:false });
+      addInput.value = '';
+      scheduleSave(); render();
+    }
+  });
+  card.querySelector('.list-del').addEventListener('click', ()=>{
+    if(list.items.length && !confirm('Delete list "'+list.name+'"?')) return;
+    const container = findContainer(sourceType, sourceDrawerId);
+    const idx = container.findIndex(c=>c.id===list.id);
+    if(idx>-1) container.splice(idx,1);
+    scheduleSave(); render();
+  });
+
+  card.querySelectorAll('.sticky-colors span').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      list.color = sw.dataset.c;
+      card.dataset.color = sw.dataset.c;
+      scheduleSave(); render();
+    });
+  });
+  const groupSel = card.querySelector('.group-select');
+  if(groupSel){
+    groupSel.addEventListener('change', ()=>{
+      const val = groupSel.value || null;
+      const container = findContainer(sourceType, sourceDrawerId);
+      const item = container.find(c=>c.id===list.id);
+      if(item){ item.groupId = val; scheduleSave(); render(); }
+    });
+  }
+  const moveSel = card.querySelector('.card-move');
+  if(moveSel){
+    moveSel.addEventListener('change', ()=>{
+      const v = moveSel.value;
+      if(!v) return;
+      if(v === 'pinned'){ moveCard(list.id, sourceType, sourceDrawerId, 'pinned', null); }
+      else { const id = v.split(':')[1]; moveCard(list.id, sourceType, sourceDrawerId, 'drawer', id); }
+      render();
+    });
+  }
+  attachDrag(card, list.id, sourceType, sourceDrawerId);
+  return card;
+}
+
+function buildAddTile(container, onPaper, afterAdd){
+  const wrap = document.createElement('div');
+  const showChoice = ()=>{
+    wrap.className = 'add-choice-panel' + (onPaper ? ' on-paper' : '');
+    wrap.innerHTML = `
+      <div class="add-choice">
+        <button data-k="note">+ Note</button>
+        <button data-k="list">+ List</button>
+      </div>
+    `;
+    wrap.querySelector('[data-k="note"]').addEventListener('click', ()=>{
+      container.push({ id: uid(), type:'note', text:'', color: NOTE_COLORS[container.length % NOTE_COLORS.length], rot:0, size:'medium', groupId:null });
+      scheduleSave(); afterAdd();
+    });
+    wrap.querySelector('[data-k="list"]').addEventListener('click', ()=>{
+      wrap.innerHTML = `
+        <div class="add-list-form">
+          <input type="text" placeholder="List name…" maxlength="40">
+          <button>Add</button>
+        </div>
+      `;
+      const input = wrap.querySelector('input');
+      const commit = ()=>{
+        const name = input.value.trim();
+        if(!name) return;
+        container.push({ id: uid(), type:'list', name, items:[], color: NOTE_COLORS[container.length % NOTE_COLORS.length], groupId:null });
+        scheduleSave(); afterAdd();
+      };
+      wrap.querySelector('button').addEventListener('click', commit);
+      input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); commit(); } });
+      input.focus();
+    });
+  };
+  wrap.className = 'add-tile';
+  wrap.textContent = '+ Add';
+  wrap.addEventListener('click', showChoice, { once:true });
+  return wrap;
+}
+
+// ——— RENDER FUNCTIONS ———
+function render(){
+  renderGroups();
+  renderPinned();
+  renderDrawers();
+  renderPanel();
+  document.querySelectorAll('.group-tag').forEach(el => {
+    el.classList.toggle('active', el.dataset.gid === filterGroupId);
+  });
+  restoreFocus();
+}
+
+function renderGroups(){
+  const container = document.getElementById('groupTagsContainer');
+  container.innerHTML = '';
+  state.groups.forEach(g=>{
+    const tag = document.createElement('span');
+    tag.className = 'group-tag' + (filterGroupId===g.id ? ' active' : '');
+    tag.dataset.gid = g.id;
+    tag.innerHTML = `
+      <span class="dot" style="background:${g.color}"></span>
+      ${escapeHtml(g.name)}
+      <button class="gdel" title="Remove group">✕</button>
+    `;
+    tag.addEventListener('click', (e)=>{
+      if(e.target.closest('.gdel')) return;
+      filterGroupId = (filterGroupId === g.id) ? null : g.id;
+      render();
+    });
+    tag.querySelector('.gdel').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(!confirm('Delete group "'+g.name+'"?')) return;
+      state.groups = state.groups.filter(gr=>gr.id!==g.id);
+      state.pinned.forEach(c=>{ if(c.groupId===g.id) c.groupId=null; });
+      state.drawers.forEach(d=>d.cards.forEach(c=>{ if(c.groupId===g.id) c.groupId=null; }));
+      if(filterGroupId===g.id) filterGroupId = null;
+      scheduleSave(); render();
+    });
+    container.appendChild(tag);
+  });
+}
+
+function renderPinned(){
+  const grid = document.getElementById('pinnedGrid');
+  grid.innerHTML = '';
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+
+  let visible = state.pinned.filter(c => cardMatches(c, q));
+  if(filterGroupId) visible = visible.filter(c => c.groupId === filterGroupId);
+
+  if(state.pinned.length === 0){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.textContent = 'Nothing on the desk yet. Add a note or list for whatever matters most right now.';
+    grid.appendChild(msg);
+  } else if(visible.length === 0 && q){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.textContent = 'Nothing on the desk matches "'+q+'".';
+    grid.appendChild(msg);
+  } else if(visible.length === 0 && filterGroupId){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.textContent = 'No items in this group on the desk.';
+    grid.appendChild(msg);
+  }
+
+  visible.forEach(card=>{
+    const el = card.type==='note' ? buildNoteEl(card, 'pinned', null) : buildListEl(card, 'pinned', null, q);
+    grid.appendChild(el);
+  });
+
+  grid.appendChild(buildAddTile(state.pinned, false, render));
+  makeDropZone(document.getElementById('desktopSurface'), 'pinned', null);
+}
+
+function renderDrawers(){
+  const grid = document.getElementById('drawerGrid');
+  grid.innerHTML = '';
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  document.getElementById('drawerCountHint').textContent = state.drawers.length + (state.drawers.length===1?' drawer':' drawers');
+
+  let drawersToShow = state.drawers;
+  if(filterGroupId){
+    drawersToShow = drawersToShow.filter(d => d.cards.some(c => c.groupId === filterGroupId));
+  }
+
+  if(drawersToShow.length === 0 && state.drawers.length > 0 && filterGroupId){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.textContent = 'No drawers contain items from this group.';
+    grid.appendChild(msg);
+  } else if(state.drawers.length === 0 && !q){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.textContent = 'No drawers yet — add one to group notes and lists together.';
+    grid.appendChild(msg);
+  }
+
+  drawersToShow.forEach(drawer=>{
+    const drawerMatches = matchesSearch(drawer.name, q) || drawer.cards.some(c=>cardMatches(c,q));
+    if(q && !drawerMatches) return;
+
+    const palette = DRAWER_COLORS[drawer.color] || DRAWER_COLORS.walnut;
+    const el = document.createElement('div');
+    el.className = 'drawer' + (openDrawerId===drawer.id ? ' open' : '');
+    el.style.setProperty('--drawer-c', palette.c);
+    el.style.setProperty('--drawer-c-light', palette.light);
+    const listCount = drawer.cards.filter(c=>c.type==='list').length;
+    const noteCount = drawer.cards.filter(c=>c.type==='note').length;
+    const metaParts = [];
+    if(listCount) metaParts.push(listCount + ' list' + (listCount===1?'':'s'));
+    if(noteCount) metaParts.push(noteCount + ' note' + (noteCount===1?'':'s'));
+    el.innerHTML = `
+      <button class="drawer-del" title="Delete drawer">✕</button>
+      <h3 class="drawer-name" contenteditable="true" spellcheck="false" data-card-id="${drawer.id}" data-field-type="drawer-name">${escapeHtml(drawer.name||'Untitled')}</h3>
+      <div class="drawer-meta">${metaParts.length ? metaParts.join(' · ') : 'empty'}</div>
+      <div class="drawer-pull"></div>
+    `;
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('.drawer-del') || e.target.closest('.drawer-name')) return;
+      openDrawerId = (openDrawerId===drawer.id) ? null : drawer.id;
+      render();
+      if(openDrawerId){
+        document.getElementById('panelHost').scrollIntoView({behavior:'smooth', block:'nearest'});
+      }
+    });
+    const nameEl = el.querySelector('.drawer-name');
+    nameEl.addEventListener('click', e=>e.stopPropagation());
+    nameEl.addEventListener('focus', (e)=>{ storeFocusTarget(e.target); });
+    nameEl.addEventListener('blur', ()=>{ drawer.name = nameEl.textContent.trim() || 'Untitled'; scheduleSave(); renderDrawers(); renderPanel(); });
+    nameEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); nameEl.blur(); } });
+    el.querySelector('.drawer-del').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(drawer.cards.length && !confirm('Delete "'+drawer.name+'" and everything inside it?')) return;
+      state.drawers = state.drawers.filter(d=>d.id!==drawer.id);
+      if(openDrawerId===drawer.id) openDrawerId = null;
+      scheduleSave(); render();
+    });
+    makeDropZone(el, 'drawer', drawer.id);
+    grid.appendChild(el);
+  });
+
+  const addWrap = document.createElement('div');
+  if(document.getElementById('addingDrawer')){
+    addWrap.innerHTML = drawerFormHtml();
+    addWrap.id = 'addingDrawer';
+    bindDrawerForm(addWrap);
+  } else {
+    addWrap.className = 'add-tile';
+    addWrap.innerHTML = '+ Add drawer';
+    addWrap.addEventListener('click', ()=>{
+      addWrap.id = 'addingDrawer';
+      addWrap.className = '';
+      addWrap.innerHTML = drawerFormHtml();
+      bindDrawerForm(addWrap);
+      const input = addWrap.querySelector('input[type="text"]');
+      if(input) input.focus();
+    });
+  }
+  grid.appendChild(addWrap);
+}
+
+function drawerFormHtml(){
+  const colorKeys = Object.keys(DRAWER_COLORS);
+  return `
+    <div class="add-drawer-form">
+      <input type="text" placeholder="Drawer name…" maxlength="40">
+      <div class="swatches">
+        ${colorKeys.map((k,i)=>'<span data-color="'+k+'" class="'+(i===0?'selected':'')+'" style="background:'+DRAWER_COLORS[k].c+'"></span>').join('')}
+      </div>
+      <div class="form-row">
+        <button class="btn-confirm">Add</button>
+        <button class="btn-cancel">Cancel</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindDrawerForm(container){
+  let selectedColor = Object.keys(DRAWER_COLORS)[0];
+  const input = container.querySelector('input[type="text"]');
+  container.querySelectorAll('.swatches span').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      container.querySelectorAll('.swatches span').forEach(s=>s.classList.remove('selected'));
+      sw.classList.add('selected');
+      selectedColor = sw.dataset.color;
+    });
+  });
+  const confirm_ = ()=>{
+    const name = (input.value || '').trim();
+    if(!name){ input.focus(); return; }
+    state.drawers.push({ id: uid(), name, color: selectedColor, cards: [] });
+    scheduleSave();
+    openDrawerId = null;
+    render();
+  };
+  container.querySelector('.btn-confirm').addEventListener('click', confirm_);
+  container.querySelector('.btn-cancel').addEventListener('click', ()=>{ render(); });
+  input.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ e.preventDefault(); confirm_(); }
+    if(e.key==='Escape'){ render(); }
+  });
+}
+
+function renderPanel(){
+  const host = document.getElementById('panelHost');
+  host.innerHTML = '';
+  if(!openDrawerId) return;
+  const drawer = state.drawers.find(d=>d.id===openDrawerId);
+  if(!drawer){ openDrawerId = null; return; }
+  const palette = DRAWER_COLORS[drawer.color] || DRAWER_COLORS.walnut;
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+
+  const panel = document.createElement('div');
+  panel.className = 'drawer-panel';
+  panel.style.setProperty('--panel-accent', palette.c);
+  panel.innerHTML = `
+    <div class="panel-header">
+      <h3>${escapeHtml(drawer.name)}</h3>
+      <button class="panel-close">Close drawer</button>
+    </div>
+    <div class="list-grid" id="listGrid"></div>
+  `;
+  panel.querySelector('.panel-close').addEventListener('click', ()=>{ openDrawerId = null; render(); });
+  host.appendChild(panel);
+
+  const listGrid = panel.querySelector('#listGrid');
+  let visibleCards = drawer.cards.filter(c=>cardMatches(c,q));
+  if(filterGroupId) visibleCards = visibleCards.filter(c=>c.groupId===filterGroupId);
+
+  if(drawer.cards.length === 0){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.style.color = 'rgba(42,33,24,0.45)';
+    msg.textContent = 'This drawer is empty — add a note or list, or drag one in.';
+    listGrid.appendChild(msg);
+  } else if(visibleCards.length === 0 && q){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.style.color = 'rgba(42,33,24,0.45)';
+    msg.textContent = 'Nothing in this drawer matches "'+q+'".';
+    listGrid.appendChild(msg);
+  } else if(visibleCards.length === 0 && filterGroupId){
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.style.color = 'rgba(42,33,24,0.45)';
+    msg.textContent = 'No items from this group in this drawer.';
+    listGrid.appendChild(msg);
+  }
+
+  visibleCards.forEach(card=>{
+    const el = card.type==='note' ? buildNoteEl(card, 'drawer', drawer.id) : buildListEl(card, 'drawer', drawer.id, q);
+    listGrid.appendChild(el);
+  });
+
+  listGrid.appendChild(buildAddTile(drawer.cards, true, render));
+  makeDropZone(listGrid, 'drawer', drawer.id);
+}
+
+// ——— GROUP UI ———
+document.getElementById('addGroupBtn').addEventListener('click', ()=>{
+  const container = document.getElementById('groupTagsContainer');
+  const existing = container.querySelector('.group-form-inline');
+  if(existing) return;
+
+  const form = document.createElement('div');
+  form.className = 'group-form-inline';
+  let selectedColor = GROUP_COLORS[0];
+  form.innerHTML = `
+    <input type="text" placeholder="Group name…" maxlength="30">
+    <div class="swatches-inline">
+      ${GROUP_COLORS.map(c => '<span style="background:'+c+'" class="'+(c===GROUP_COLORS[0]?'selected':'')+'"></span>').join('')}
+    </div>
+    <button class="gcommit">Add</button>
+    <button class="gcancel">✕</button>
+  `;
+  const input = form.querySelector('input');
+  form.querySelectorAll('.swatches-inline span').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      form.querySelectorAll('.swatches-inline span').forEach(s=>s.classList.remove('selected'));
+      sw.classList.add('selected');
+      selectedColor = sw.style.background;
+    });
+  });
+  const commit = ()=>{
+    const name = input.value.trim();
+    if(!name){ input.focus(); return; }
+    state.groups.push({ id: uid(), name, color: selectedColor });
+    scheduleSave(); render();
+  };
+  form.querySelector('.gcommit').addEventListener('click', commit);
+  form.querySelector('.gcancel').addEventListener('click', ()=>{ render(); });
+  input.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ e.preventDefault(); commit(); }
+    if(e.key==='Escape'){ render(); }
+  });
+  container.appendChild(form);
+  input.focus();
+});
+
+// ——— SEARCH ———
+document.getElementById('searchInput').addEventListener('input', ()=>{ render(); });
+
+// ——— NEW NOTE BUTTON ———
+document.getElementById('newNoteBtn').addEventListener('click', ()=>{
+  const newNote = {
+    id: uid(),
+    type: 'note',
+    text: '',
+    color: NOTE_COLORS[state.pinned.length % NOTE_COLORS.length],
+    rot: 0,
+    size: 'medium',
+    groupId: null
+  };
+  state.pinned.push(newNote);
+  scheduleSave();
+  render();
+  setTimeout(()=>{
+    const target = document.querySelector(`[data-card-id="${newNote.id}"][data-field-type="note-text"]`);
+    if(target) target.focus();
+  }, 50);
+});
+
+// ——— INIT ———
+await loadFromFirebase();
+listenRemote();
+</script>
+</body>
+</html>
