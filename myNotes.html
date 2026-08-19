@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>The Desk · Groups &amp; Firebase</title>
+<link rel="manifest" href="/manifest.json">
+<title>The Desk</title>
 <style>
   /* ——— Styles unchanged ——— */
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -819,10 +820,6 @@
     <div class="title-block">
       <h1>The Desk</h1>
     </div>
-    <div class="header-tools">
-      <button class="ghost-btn" id="newNoteBtn">+ New Note</button>
-      <!-- Clear Desk button removed -->
-    </div>
   </header>
 
   <!-- Search row (below buttons) -->
@@ -843,7 +840,6 @@
   <div class="section-label">
     <h2>On the desk</h2>
     <div class="rule"></div>
-    <span class="hint">pinned &amp; important — drag onto a drawer to file it away</span>
   </div>
   <div class="desktop-surface" id="desktopSurface">
     <div class="pinned-grid" id="pinnedGrid"></div>
@@ -1684,28 +1680,6 @@ document.getElementById('addGroupBtn').addEventListener('click', ()=>{
   input.focus();
 });
 
-// ——— SEARCH ———
-document.getElementById('searchInput').addEventListener('input', ()=>{ render(); });
-
-// ——— NEW NOTE BUTTON ———
-document.getElementById('newNoteBtn').addEventListener('click', ()=>{
-  const newNote = {
-    id: uid(),
-    type: 'note',
-    text: '',
-    color: NOTE_COLORS[state.pinned.length % NOTE_COLORS.length],
-    rot: 0,
-    size: 'medium',
-    groupId: null
-  };
-  state.pinned.push(newNote);
-  scheduleSave();
-  render();
-  setTimeout(()=>{
-    const target = document.querySelector(`[data-card-id="${newNote.id}"][data-field-type="note-text"]`);
-    if(target) target.focus();
-  }, 50);
-});
 
 // ——— INIT ———
 await loadFromFirebase();
