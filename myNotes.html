@@ -1115,7 +1115,7 @@ function restoreFocus(){
   let selector = `[data-card-id="${cardId}"][data-field-type="${fieldType}"]`;
   const target = document.querySelector(selector);
   if(target){
-    target.focus();
+    target.focus({ preventScroll: true });
     const range = document.createRange();
     const sel = window.getSelection();
     if(target.childNodes.length){
@@ -1264,7 +1264,11 @@ function buildListEl(list, sourceType, sourceDrawerId, q){
   nameEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); nameEl.blur(); } });
 
   const itemsHost = card.querySelector('.items-host');
-  list.items.forEach(item=>{
+  // Show unticked items first, ticked items sink to the bottom. Sort is
+  // stable, so relative order within each group is preserved; the
+  // underlying list.items array/order is left untouched.
+  const displayItems = [...list.items].sort((a,b)=> (a.done?1:0) - (b.done?1:0));
+  displayItems.forEach(item=>{
     if(q && !matchesSearch(item.text,q) && !matchesSearch(list.name,q)) return;
     const row = document.createElement('div');
     row.className = 'item-row' + (item.done ? ' done' : '');
@@ -1281,9 +1285,8 @@ function buildListEl(list, sourceType, sourceDrawerId, q){
     const cb = row.querySelector('input[type="checkbox"]');
     cb.addEventListener('change', (e)=>{
       item.done = e.target.checked;
-      row.classList.toggle('done', item.done);
       scheduleSave();
-      card.querySelector('.list-count').textContent = list.items.filter(i=>i.done).length + '/' + list.items.length;
+      render();
     });
     row.querySelector('.item-del').addEventListener('click', ()=>{
       list.items = list.items.filter(i=>i.id!==item.id);
@@ -1381,6 +1384,8 @@ function buildAddTile(container, onPaper, afterAdd){
 
 // ——— RENDER FUNCTIONS ———
 function render(){
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
   renderGroups();
   renderPinned();
   renderDrawers();
@@ -1389,6 +1394,12 @@ function render(){
     el.classList.toggle('active', el.dataset.gid === filterGroupId);
   });
   restoreFocus();
+  // Re-rendering can shuffle/recreate DOM nodes and cause the browser to
+  // auto-scroll (e.g. via focus()); pin the scroll position back in place
+  // so routine actions (adding/checking an item, saving, etc.) never
+  // yank the viewport around.
+  window.scrollTo(scrollX, scrollY);
+  requestAnimationFrame(()=> window.scrollTo(scrollX, scrollY));
 }
 
 function renderGroups(){
@@ -1494,23 +1505,18 @@ function renderDrawers(){
     if(noteCount) metaParts.push(noteCount + ' note' + (noteCount===1?'':'s'));
     el.innerHTML = `
       <button class="drawer-del" title="Delete drawer">✕</button>
-      <h3 class="drawer-name" contenteditable="true" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-card-id="${drawer.id}" data-field-type="drawer-name">${escapeHtml(drawer.name||'Untitled')}</h3>
+      <h3 class="drawer-name">${escapeHtml(drawer.name||'Untitled')}</h3>
       <div class="drawer-meta">${metaParts.length ? metaParts.join(' · ') : 'empty'}</div>
       <div class="drawer-pull"></div>
     `;
     el.addEventListener('click', (e)=>{
-      if(e.target.closest('.drawer-del') || e.target.closest('.drawer-name')) return;
+      if(e.target.closest('.drawer-del')) return;
       openDrawerId = (openDrawerId===drawer.id) ? null : drawer.id;
       render();
       if(openDrawerId){
         document.getElementById('panelHost').scrollIntoView({behavior:'smooth', block:'nearest'});
       }
     });
-    const nameEl = el.querySelector('.drawer-name');
-    nameEl.addEventListener('click', e=>e.stopPropagation());
-    nameEl.addEventListener('focus', (e)=>{ storeFocusTarget(e.target); });
-    nameEl.addEventListener('blur', ()=>{ drawer.name = nameEl.textContent.trim() || 'Untitled'; scheduleSave(); renderDrawers(); renderPanel(); });
-    nameEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); nameEl.blur(); } });
     el.querySelector('.drawer-del').addEventListener('click', (e)=>{
       e.stopPropagation();
       if(drawer.cards.length && !confirm('Delete "'+drawer.name+'" and everything inside it?')) return;
