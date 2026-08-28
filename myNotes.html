@@ -826,7 +826,7 @@
   <div class="search-row">
     <div class="search-box">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2A2118" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="searchInput" type="text" placeholder="Search notes &amp; lists…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text">
+      <input id="searchInput" name="search" type="search" placeholder="Search notes &amp; lists…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text">
     </div>
   </div>
 
@@ -1146,7 +1146,7 @@ function buildNoteEl(card, sourceType, sourceDrawerId){
 
   el.innerHTML = `
     <div class="pin"></div>
-    <div class="sticky-text" contenteditable="true" spellcheck="false" autocorrect="off" autocapitalize="off" data-placeholder="Write something…" data-card-id="${card.id}" data-field-type="note-text"></div>
+    <div class="sticky-text" contenteditable="true" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-placeholder="Write something…" data-card-id="${card.id}" data-field-type="note-text"></div>
     <div class="sticky-footer">
       <div class="left-group">
         <div class="sticky-colors">${NOTE_COLORS.map(c=>'<span data-c="'+c+'" title="'+c+'"></span>').join('')}</div>
@@ -1236,14 +1236,14 @@ function buildListEl(list, sourceType, sourceDrawerId, q){
 
   card.innerHTML = `
     <div class="list-card-head">
-      <h4 contenteditable="true" spellcheck="false" autocorrect="off" autocapitalize="off" data-card-id="${list.id}" data-field-type="list-name">${escapeHtml(list.name||'Untitled list')}</h4>
+      <h4 contenteditable="true" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-card-id="${list.id}" data-field-type="list-name">${escapeHtml(list.name||'Untitled list')}</h4>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="list-count">${doneCount}/${list.items.length}</span>
         <button class="list-del" title="Delete list">✕</button>
       </div>
     </div>
     <div class="items-host"></div>
-    <div class="add-item-row"><input type="text" placeholder="Add item…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text"></div>
+    <div class="add-item-row"><input type="text" name="additem" placeholder="Add item…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text"></div>
     <div class="list-footer">
       <div class="left-group">
         ${groupBadgeHtml}
@@ -1494,7 +1494,7 @@ function renderDrawers(){
     if(noteCount) metaParts.push(noteCount + ' note' + (noteCount===1?'':'s'));
     el.innerHTML = `
       <button class="drawer-del" title="Delete drawer">✕</button>
-      <h3 class="drawer-name" contenteditable="true" spellcheck="false" autocorrect="off" autocapitalize="off" data-card-id="${drawer.id}" data-field-type="drawer-name">${escapeHtml(drawer.name||'Untitled')}</h3>
+      <h3 class="drawer-name" contenteditable="true" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-card-id="${drawer.id}" data-field-type="drawer-name">${escapeHtml(drawer.name||'Untitled')}</h3>
       <div class="drawer-meta">${metaParts.length ? metaParts.join(' · ') : 'empty'}</div>
       <div class="drawer-pull"></div>
     `;
@@ -1546,7 +1546,7 @@ function drawerFormHtml(){
   const colorKeys = Object.keys(DRAWER_COLORS);
   return `
     <div class="add-drawer-form">
-      <input type="text" placeholder="Drawer name…" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text">
+      <input type="text" name="drawername" placeholder="Drawer name…" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text">
       <div class="swatches">
         ${colorKeys.map((k,i)=>'<span data-color="'+k+'" class="'+(i===0?'selected':'')+'" style="background:'+DRAWER_COLORS[k].c+'"></span>').join('')}
       </div>
@@ -1649,7 +1649,7 @@ document.getElementById('addGroupBtn').addEventListener('click', ()=>{
   form.className = 'group-form-inline';
   let selectedColor = GROUP_COLORS[0];
   form.innerHTML = `
-    <input type="text" placeholder="Group name…" maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text">
+    <input type="text" name="groupname" placeholder="Group name…" maxlength="30" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" inputmode="text">
     <div class="swatches-inline">
       ${GROUP_COLORS.map(c => '<span style="background:'+c+'" class="'+(c===GROUP_COLORS[0]?'selected':'')+'"></span>').join('')}
     </div>
